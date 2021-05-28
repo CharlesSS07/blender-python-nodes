@@ -7,11 +7,13 @@ Blender Python Nodes is a blender addon that enables python programming using on
   3. auto convert python functions into nodes
   4. auto convert python modules into nodes in categories
   5. implement blender utility nodes:
+ 
     * mix node, compositiong nodes, color ramp, noise generation...
     * input from rendered scenes, compositor nodes, texture nodes
     * input from motion tracking, drivers...
     * bpy commands...
   6. impelemnt lots of NNs into python modules and nodes to be used artstically by blender users with little-no code expierence
+
     * cyclegan x -> y, person to tom cruz or tom hanks for example. (floor -> beach, person -> celebrity, stone -> wood, greenscreen -> mask, ...)
     * pose transfer for dancing (https://aliaksandrsiarohin.github.io/first-order-model-website/)
     * up-resolution, infilling, image-generation, frame-interpolation
