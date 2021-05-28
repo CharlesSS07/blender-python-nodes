@@ -1,8 +1,18 @@
+bl_info = {
+    "name": "Python Nodes",
+    "description": "The power of python, brought to you through blender nodes.",
+    "author": "Charles M. S. Strauss<charles.s.strauss@gmail.com>, and Robert R. Strauss<robert.r.strauss@icloud.com>",
+    "version": (1, 0),
+    "blender": (2, 92, 0),
+    "location": "Console",
+    "warning": "Requires user has tensorflow, pytorch installed using blender python environment manager TODO: include link", # used for warning icon and text in addons panel
+    "support": "COMMUNITY",
+    "category": "Nodes",
+}
+
 import bpy
 from bpy.types import NodeTree, Node, NodeSocket
 import numpy as np
-
-# Implementation of custom nodes from Python
 
 # TODO ideas:
 # 1. autorename sockets based off of return type, numpy array could show dtype, shape
