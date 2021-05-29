@@ -6,4 +6,4 @@ __registry__ = {}
 
 def register(clazz, full_name):
     
-    registry[clazz] = full_name
+    registry[full_name] = clazz
