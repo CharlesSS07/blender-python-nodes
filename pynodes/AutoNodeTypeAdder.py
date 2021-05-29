@@ -6,7 +6,7 @@ import bpy
 
 import numpy
 
-pythonnodes = bpy.data.texts['python-nodes.py'].as_module()
+from pynodes import __init__, registry
 
 
 
@@ -53,7 +53,7 @@ def addNodeType(func):
             
             self.set_output(sig.return_annotation, output)
     
-#    pythonnodes.register(nodeType)
+    registry.register(nodeType)
 
 
 
@@ -76,4 +76,6 @@ def addScope(scope):
                 print('other', key)
 
 
-addScope(vars())
+
+def addAllGlobals():
+    addScope(vars())
