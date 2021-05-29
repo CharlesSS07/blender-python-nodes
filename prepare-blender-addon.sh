@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-zip -r python-nodes.zip python-nodes
+zip -r pynodes.zip pynodes
