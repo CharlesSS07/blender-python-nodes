@@ -231,11 +231,16 @@ class PythonCompositorNodeCategory(NodeCategory):
         return context.space_data.tree_type == PythonCompositorTree.bl_idname
 
 
+def register_node(clazz, path
+
 # all categories in a list
 node_categories = [
     # identifier, label, items list
     PythonCompositorNodeCategory('SOMENODES', "Some Nodes", items=[
         # our basic node
+        PythonCompositorNodeCategory('ANOTHER', 'another category', items=[
+            NodeItem("PythonSaveImageBaseNode")
+        ]
         NodeItem("PythonSaveImageBaseNode"),
         NodeItem("PythonLoadImageNode"),
     ])
