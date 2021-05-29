@@ -4,6 +4,8 @@ import inspect
 
 import bpy
 
+import numpy
+
 pythonnodes = bpy.data.texts['python-nodes.py'].as_module()
 
 
