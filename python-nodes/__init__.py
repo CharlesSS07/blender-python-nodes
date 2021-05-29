@@ -14,6 +14,8 @@ import bpy
 from bpy.types import NodeTree, Node, NodeSocket
 import numpy as np
 
+import registry
+
 # TODO ideas:
 # 1. autorename sockets based off of return type, numpy array could show dtype, shape
 
@@ -236,9 +238,6 @@ node_categories = [
     # identifier, label, items list
     PythonCompositorNodeCategory('SOMENODES', "Some Nodes", items=[
         # our basic node
-        PythonCompositorNodeCategory('ANOTHER', 'another category', items=[
-            NodeItem("PythonSaveImageBaseNode")
-        ]
         NodeItem("PythonSaveImageBaseNode"),
         NodeItem("PythonLoadImageNode"),
     ])
