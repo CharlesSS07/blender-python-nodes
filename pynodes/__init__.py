@@ -14,7 +14,7 @@ import bpy
 from bpy.types import NodeTree, Node, NodeSocket
 import numpy as np
 
-import registry
+from pynodes import registry
 
 # TODO ideas:
 # 1. autorename sockets based off of return type, numpy array could show dtype, shape
