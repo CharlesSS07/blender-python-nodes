@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 
-zip -r pynodes.zip pynodes
+rm pynodes.zip
+zip -r pynodes.zip pynodes --exclude *__pycache__*
