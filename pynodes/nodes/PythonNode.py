@@ -8,9 +8,37 @@ class PythonCompositorTreeNode:
     def poll(cls, ntree):
         return ntree.bl_idname == pynodes.PythonCompositorTree.bl_idname
 
+class FlashingNode(bpy.types.Node):
+    # === Basics ===
+    # Description string
+    '''Abstract node that can change colors.'''
+
+    flash_on_color = [1.0,0.0,0.0]
+    flash_off_color = [0.0,0.0,0.0]
+    flash_on = False
+
+    def set_flash_color(self, color):
+        self.flash_on_color = color
+
+    def set_color_flash_on(self):
+        if not self.flash_on:
+            self.flash_off_color = self.color
+            self.color = self.flash_on_color
+            print(self.flash_off_color, self.flash_off_color is self.color, self.flash_off_color == self.color)
+        else:
+            self.flash_on = True
+
+    def set_color_flash_off(self):
+        if self.flash_on:
+            self.color = self.flash_off_color
+        else:
+            self.flash_on = False
+
+
+
 # Derived from the Node base type.
 # Defines functionality of python node to only require that call is overloaded
-class PythonNode(bpy.types.Node, PythonCompositorTreeNode):
+class PythonNode(FlashingNode, PythonCompositorTreeNode):
     # === Basics ===
     # Description string
     '''Abstract python node.'''
@@ -59,7 +87,18 @@ class PythonNode(bpy.types.Node, PythonCompositorTreeNode):
         to the linked nodes, and calls update_value on them.
         '''
         if self.is_connected_to_base():
-            self.run()
+            self.set_color_flash_off()
+            self.set_flash_color([0.0, 1.0, 0.0])
+            self.set_color_flash_on()
+            try:
+                self.run()
+                self.set_color_flash_off()
+            except Exception as e:
+                print(f'Node "{self.bl_label}" raised an exception:')
+                print(e)
+                self.set_color_flash_off()
+                self.set_flash_color([1.0, 0.0, 0.0])
+                self.set_color_flash_on()
             self.propagate()
 
     def update(self):

@@ -73,7 +73,7 @@ class PythonCompositorNodeCategory(NodeCategory):
 from pynodes import registry
 from pynodes import nodes
 
-classes = sorted(registry.__registry__.keys())
+node_classes = [registry.__registry__[cls] for cls in sorted(registry.__registry__.keys())]
 
 # all categories in a list
 node_categories = [
@@ -82,29 +82,58 @@ node_categories = [
         'ALLNODES',
         "All Nodes",
         items=[
-            NodeItem(registry.__registry__[cls].bl_idname)
-            for cls in classes
+            NodeItem(cls.bl_idname)
+            for cls in node_classes
         ]
     )
 ]
 
-classes = [
-    PythonCompositorTree,
-    PyObjectSocket,
-    *[
-        registry.__registry__[cls]
-        for cls in classes
-    ]
-]
+class NODE_MT_add_test_node_tree(bpy.types.Operator):
+    """Programmatically create node tree for testing, if it dosen't already exist."""
+    bl_idname = "node.add_test_node_tree"
+    bl_label = "Add test node tree"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+
+        if bpy.data.node_groups.get('Python Node Tree Test', False)==False:
+            bpy.ops.node.new_node_tree(
+                type='PythonCompositorTreeType',
+                name='Python Node Tree Test'
+            )
+            test_node_tree = bpy.data.node_groups.get('Python Node Tree Test', False)
+            load_image = test_node_tree.nodes.new('PythonLoadImageNode')
+            save_image = test_node_tree.nodes.new('PythonSaveImageBaseNode')
+            test_node_tree.links.new(
+                input=save_image.inputs[0],
+                output=load_image.outputs[0]
+            )
+            return {'FINISHED'}
+
+def add_test_node_tree(self, context):
+    self.layout.operator(
+        NODE_MT_add_test_node_tree.bl_idname,
+        text="Add test node tree")
+
 
 def register():
     from bpy.utils import register_class
-    for cls in classes:
-        print('registering class', cls)
+    # register the essentials to building a PythonNode
+    register_class(PythonCompositorTree)
+    register_class(PyObjectSocket)
+    # register every single PythonNode derivative
+    for cls in node_classes:
+        print('registering node class', cls)
         register_class(cls)
 
+    # create the python node editor
     nodeitems_utils.register_node_categories('CUSTOM_NODES', node_categories)
 
+    # register dropdown menues in node editor
+    register_class(NODE_MT_add_test_node_tree)
+    bpy.types.NODE_MT_add.append(add_test_node_tree)
+    # # register operators specific to python nodes
+    # register_class(TestPythonNodesOperator)
 
 def unregister():
     nodeitems_utils.unregister_node_categories('CUSTOM_NODES')
@@ -112,6 +141,8 @@ def unregister():
     from bpy.utils import unregister_class
     for cls in reversed(classes):
         unregister_class(cls)
+    unregister_class(PythonCompositorTree)
+    unregister_class(PyObjectSocket)
 
 
 if __name__ == "__main__":
