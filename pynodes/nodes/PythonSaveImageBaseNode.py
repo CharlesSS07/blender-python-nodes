@@ -31,4 +31,4 @@ class PythonSaveImageBaseNode(nodes.PythonBaseNode):
         image.pixels = bgr.ravel()
 
 from pynodes import registry
-registry.register(PythonSaveImageBaseNode)
+registry.registerNodeType(PythonSaveImageBaseNode)

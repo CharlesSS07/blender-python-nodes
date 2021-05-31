@@ -18,4 +18,8 @@ from pynodes.nodes.PythonNode import PythonNode
 from pynodes.nodes.PythonBaseNode import PythonBaseNode
 
 from pynodes.nodes.PythonLoadImageNode import PythonLoadImageNode
-from pynodes.nodes.PythonSaveImageBaseNode import PythonSaveImageBaseNode
+from pynodes.nodes.PythonSaveImageBaseNode import PythonSaveImageBaseNode\
+
+from pynodes.nodes.AutoNodeTypeAdder import addAllGlobals
+
+addAllGlobals()

@@ -73,20 +73,20 @@ class PythonCompositorNodeCategory(NodeCategory):
 from pynodes import registry
 from pynodes import nodes
 
-node_classes = [registry.__registry__[cls] for cls in sorted(registry.__registry__.keys())]
-
-# all categories in a list
-node_categories = [
-    # identifier, label, items list
-    PythonCompositorNodeCategory(
-        'ALLNODES',
-        "All Nodes",
-        items=[
-            NodeItem(cls.bl_idname)
-            for cls in node_classes
-        ]
-    )
-]
+# node_classes = [registry.registryDict[cls] for cls in sorted(registry.registryDict.keys())]
+#
+# # all categories in a list
+# node_categories = [
+#     # identifier, label, items list
+#     PythonCompositorNodeCategory(
+#         'ALLNODES',
+#         "All Nodes",
+#         items=[
+#             NodeItem(cls.bl_idname)
+#             for cls in node_classes
+#         ]
+#     )
+# ]
 
 class NODE_MT_add_test_node_tree(bpy.types.Operator):
     """Programmatically create node tree for testing, if it dosen't already exist."""
@@ -117,10 +117,13 @@ def add_test_node_tree(self, context):
 
 
 def register():
+    registry.registerAll()
+
     from bpy.utils import register_class
     # register the essentials to building a PythonNode
     register_class(PythonCompositorTree)
     register_class(PyObjectSocket)
+    """
     # register every single PythonNode derivative
     for cls in node_classes:
         print('registering node class', cls)
@@ -130,19 +133,24 @@ def register():
     nodeitems_utils.register_node_categories('CUSTOM_NODES', node_categories)
 
     # register dropdown menues in node editor
+    """
     register_class(NODE_MT_add_test_node_tree)
     bpy.types.NODE_MT_add.append(add_test_node_tree)
     # # register operators specific to python nodes
     # register_class(TestPythonNodesOperator)
-
+    
 def unregister():
+    registry.unregisterAll()
+    """
     nodeitems_utils.unregister_node_categories('CUSTOM_NODES')
 
     from bpy.utils import unregister_class
     for cls in reversed(classes):
         unregister_class(cls)
+    """
     unregister_class(PythonCompositorTree)
     unregister_class(PyObjectSocket)
+
 
 
 if __name__ == "__main__":

@@ -43,4 +43,4 @@ class PythonLoadImageNode(nodes.PythonNode):
         self.set_output("Image", img_arr)
 
 from pynodes import registry
-registry.register(PythonLoadImageNode)
+registry.registerNodeType(PythonLoadImageNode)
