@@ -25,6 +25,8 @@ Blender Python Nodes is a blender addon that enables python programming using on
       11. glsl, osl filters node
       12. nft-generator gan
       13. expieremental: object re-orientation gan
+  7. dictionary creation node (fill in sockets as values, and use text input as key)
+  8. special functions like if, while, for, try, def
 
 # Goals:
   1. be able to make crazy tiktoks of people without them knowing using only nf

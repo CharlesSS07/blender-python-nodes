@@ -14,7 +14,7 @@ class FlashingNode(bpy.types.Node):
     '''Abstract node that can change colors.'''
 
     flash_on_color = [1.0,0.0,0.0]
-    flash_off_color = [0.0,0.0,0.0]
+    flash_off_color = bpy.context.preferences.themes[0].node_editor.node_backdrop[:3]
     flash_on = False
 
     def init(self, context):
@@ -25,18 +25,14 @@ class FlashingNode(bpy.types.Node):
 
     def set_color_flash_on(self):
         if not self.flash_on:
-            # self.flash_off_color = self.color
             self.color = self.flash_on_color
-            print(self.flash_off_color, self.flash_off_color is self.color, self.flash_off_color == self.color)
-        else:
             self.flash_on = True
+            print(self.color, self.flash_off_color, self.flash_on_color)
 
     def set_color_flash_off(self):
         if self.flash_on:
             self.color = self.flash_off_color
-        else:
             self.flash_on = False
-
 
 
 # Derived from the Node base type.
@@ -103,6 +99,7 @@ class PythonNode(FlashingNode, PythonCompositorTreeNode):
                 self.set_flash_color([1.0, 0.0, 0.0])
                 self.set_color_flash_on()
             self.propagate()
+        self.set_color_flash_off()
 
     def update(self):
         '''
@@ -121,4 +118,4 @@ class PythonNode(FlashingNode, PythonCompositorTreeNode):
                 for o in out.links:
                     if o.is_valid:
                         o.to_socket.set_value(out.get_value())
-                        o.to_socket.node.update_value()
+                        # o.to_socket.node.update_value()

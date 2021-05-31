@@ -13,11 +13,6 @@ class PythonLoadImageNode(nodes.PythonNode):
     # Label for nice name display
     bl_label = "Python Image Loader"
 
-#    def update_filename(self, context):
-#        print('running set', self.filename)
-#        self.update_value()
-#        print('ran set')
-
     filename : bpy.props.StringProperty(
         name='Filename',
         description="Filepath of image.",
