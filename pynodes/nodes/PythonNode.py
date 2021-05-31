@@ -22,7 +22,7 @@ class FlashingNode(bpy.types.Node):
 
     def set_color_flash_on(self):
         if not self.flash_on:
-            self.flash_off_color = self.color
+            # self.flash_off_color = self.color
             self.color = self.flash_on_color
             print(self.flash_off_color, self.flash_off_color is self.color, self.flash_off_color == self.color)
         else:
@@ -64,7 +64,7 @@ class PythonNode(FlashingNode, PythonCompositorTreeNode):
     def run(self):
         '''
         Do whatever calculations this node does. Take input from self.get_input
-        and set outpus using self.set_output.
+        and set outputs using self.set_output.
         '''
         pass
 
