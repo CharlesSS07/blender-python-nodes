@@ -16,7 +16,7 @@ classes = []
 def registerNodeType(clazz):
 
     try:
-        category = clazz.mmod
+        category = clazz.mmod.replace('.', '_')
     except AttributeError as ae:
         category = 'Custom'
 
@@ -40,7 +40,7 @@ def unregisterAll():
 def registerAll():
     node_categories = []
 
-    for category, clazzes in registryDict.items():
+    for category, clazzes in sorted(registryDict.items()):
         cat = pynodes.PythonCompositorNodeCategory(category, category, items=
                 list([
                     NodeItem(clazz.bl_idname)

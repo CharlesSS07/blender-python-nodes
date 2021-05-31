@@ -28,11 +28,12 @@ class PythonCompositorTree(NodeTree):
     bl_icon = 'NODETREE'
 
 # Custom socket type
+PyObjectSocketType = 'PyObjectSocketType'
 class PyObjectSocket(NodeSocket):
     # Description string
     '''Python node socket type'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'PyObjectSocketType'
+    bl_idname = PyObjectSocketType
     # Label for nice name display
     bl_label = "Python Object Socket"
 
@@ -69,25 +70,6 @@ class PythonCompositorNodeCategory(NodeCategory):
     def poll(cls, context):
         return context.space_data.tree_type == PythonCompositorTree.bl_idname
 
-
-from pynodes import registry
-from pynodes import nodes
-
-# node_classes = [registry.registryDict[cls] for cls in sorted(registry.registryDict.keys())]
-#
-# # all categories in a list
-# node_categories = [
-#     # identifier, label, items list
-#     PythonCompositorNodeCategory(
-#         'ALLNODES',
-#         "All Nodes",
-#         items=[
-#             NodeItem(cls.bl_idname)
-#             for cls in node_classes
-#         ]
-#     )
-# ]
-
 class NODE_MT_add_test_node_tree(bpy.types.Operator):
     """Programmatically create node tree for testing, if it dosen't already exist."""
     bl_idname = "node.add_test_node_tree"
@@ -117,6 +99,8 @@ def add_test_node_tree(self, context):
         text="Add test node tree")
 
 
+from pynodes import registry
+
 def register():
     registry.registerAll()
 
@@ -127,8 +111,7 @@ def register():
 
     register_class(NODE_MT_add_test_node_tree)
     bpy.types.NODE_MT_node.append(add_test_node_tree)
-    # # register operators specific to python nodes
-    # register_class(TestPythonNodesOperator)
+    bpy.data.screens['Compositing'].areas[3].ui_type = 'PythonCompositorTreeType'
     """
     # register every single PythonNode derivative
     for cls in node_classes:

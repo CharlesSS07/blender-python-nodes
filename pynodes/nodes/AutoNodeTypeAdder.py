@@ -6,13 +6,15 @@ import bpy
 
 import numpy
 
+import pynodes
 from pynodes import registry
 from pynodes.nodes import PythonNode
 
+import re
 
 def add_node_type(func):
     # Doc string
-    docstr = func.__doc__
+    docstr = str(func.__doc__)
 
 
     if hasattr(func, '__module__') and hasattr(func, '__name__'):
@@ -22,12 +24,32 @@ def add_node_type(func):
         mod   = str(func.__class__.__module__) # module name
         qname = str(func.__class__.__name__ + ' object') # function name
 
+
+
     # Call signature
     try:
+        # use inspect to get call signature
         sig = inspect.signature(func)
+
+        # list of arguments: [ (argument name, default value), ... ]
+        args = list([ (arg.name, arg.default) for arg in sig.parameters.values()])
+
+        funcname = qname
     except ValueError as ve:
-        print('ignoring', ve)
-        sig = type('obj', (object,), {'parameters': [], 'return_annotation': type(func)})
+        # parse docstring with regex to find call signature
+        sigmatch = re.match(r'(\w+)\((.*)\)', docstr)
+        if sigmatch is not None:
+            funcname = sigmatch.group(1)
+            argstr = sigmatch.group(2)
+
+            # list of arguments: [ (argument name, default value), ... ]
+            args = re.findall(r'(\w+)=?([^,]+)?', argstr)
+        else:
+            args = [
+                ('...', '')
+            ]
+            funcname = qname
+        # sig = type('obj', (object,), {'parameters': [], 'return_annotation': type(func)})
 
 
     # print('sig', sig)
@@ -44,22 +66,24 @@ def add_node_type(func):
         # module
         mmod = mod
 
-
         def init(self, context):
-            for param in sig.parameters:
-                self.inputs.new(param.name, param.annotation)
+            for arg in args:
+                self.inputs.new(pynodes.PyObjectSocketType, arg[0])
 
-            self.outputs.new(func.__name__, sig.return_annotation)
+            self.outputs.new(pynodes.PyObjectSocketType, funcname)
 
         def run(self):
-            funcargs = {}
+            funcargs = dict({
+                arg[0]: self.getinput(arg[0])
+                for arg in args
+            })
 
-            for param in sig.parameters:
-                funcargs[param.name] = self.getinput(param.name)
+            # for arg in args:
+            #     funcargs[arg.name] = self.getinput(arg.name)
 
             output = func(*funcargs)
 
-            self.set_output(sig.return_annotation, output)
+            self.set_output(pynodes.PyObjectSocketType, funcname)
 
     registry.registerNodeType(nodeType)
 
