@@ -20,6 +20,6 @@ from pynodes.nodes.PythonBaseNode import PythonBaseNode
 from pynodes.nodes.PythonLoadImageNode import PythonLoadImageNode
 from pynodes.nodes.PythonSaveImageBaseNode import PythonSaveImageBaseNode\
 
-from pynodes.nodes.AutoNodeTypeAdder import addAllGlobals
+from pynodes.nodes.AutoNodeTypeAdder import add_all_globals
 
-addAllGlobals()
+add_all_globals()

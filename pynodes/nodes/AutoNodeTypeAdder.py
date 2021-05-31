@@ -10,7 +10,7 @@ from pynodes import registry
 from pynodes.nodes import PythonNode
 
 
-def addNodeType(func):
+def add_node_type(func):
     docstr = func.__doc__
 
     try:
@@ -57,7 +57,7 @@ def addNodeType(func):
 
 added = []
 
-def addScope(scope):
+def add_scope(scope):
     for key, obj in scope.copy().items():
         if any([obj is elem for elem in added]):
             # print('skip')
@@ -67,15 +67,15 @@ def addScope(scope):
 
             if callable(obj):
                 # print('callable', key)
-                addNodeType(obj)
+                add_node_type(obj)
             elif isinstance(obj, types.ModuleType):
                 # print('module', key)
-                addScope(vars(obj))
+                add_scope(vars(obj))
             else:
                 # print('other', key)
                 pass
 
 
 
-def addAllGlobals():
-    addScope(globals())
+def add_all_globals():
+    add_scope(globals())
