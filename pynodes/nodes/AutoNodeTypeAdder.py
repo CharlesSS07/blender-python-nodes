@@ -16,7 +16,7 @@ def add_node_type(func):
     # Doc string
     docstr = str(func.__doc__)
 
-
+    # get the module and function name, for the category and node name
     if hasattr(func, '__module__') and hasattr(func, '__name__'):
         mod   = str(func.__module__)  # module name
         qname = str(func.__name__) # function name
@@ -26,65 +26,63 @@ def add_node_type(func):
 
 
 
-    # Call signature
+    # getting the arguments to the function
     try:
         # use inspect to get call signature
         sig = inspect.signature(func)
-
         # list of arguments: [ (argument name, default value), ... ]
         args = list([ (arg.name, arg.default) for arg in sig.parameters.values()])
-
-        funcname = qname
     except ValueError as ve:
         # parse docstring with regex to find call signature
         sigmatch = re.match(r'(\w+)\((.*)\)', docstr)
         if sigmatch is not None:
-            funcname = sigmatch.group(1)
+            qname = sigmatch.group(1)
             argstr = sigmatch.group(2)
-
             # list of arguments: [ (argument name, default value), ... ]
             args = re.findall(r'(\w+)=?([^,]+)?', argstr)
         else:
             args = [
                 ('...', '')
             ]
-            funcname = qname
-        # sig = type('obj', (object,), {'parameters': [], 'return_annotation': type(func)})
-
-
-    # print('sig', sig)
 
     class nodeType(PythonNode):
         # === Basics ===
         # Description string
         ''' %s ''' % docstr
+
+        # module
+        mmod = mod
+
         # Optional identifier string. If not explicitly defined, the python class name is used.
         bl_idname = qname
         # Label for nice name display
         bl_label = qname
 
-        # module
-        mmod = mod
 
         def init(self, context):
+            super().init(context)
+
+            # add each of the function arguments as pins
             for arg in args:
                 self.inputs.new(pynodes.PyObjectSocketType, arg[0])
 
-            self.outputs.new(pynodes.PyObjectSocketType, funcname)
+            # add the output pin
+            self.outputs.new(pynodes.PyObjectSocketType, qname)
 
         def run(self):
+            # collect the inputs
             funcargs = dict({
                 arg[0]: self.getinput(arg[0])
                 for arg in args
             })
 
-            # for arg in args:
-            #     funcargs[arg.name] = self.getinput(arg.name)
+            # pass inputs to the function and run it
+            output = func(*funcargs) # TODO: should this be ran in a scope somehow?
 
-            output = func(*funcargs)
+            # send the output of the function to the output socket
+            self.set_output(pynodes.PyObjectSocketType, qname)
 
-            self.set_output(pynodes.PyObjectSocketType, funcname)
-
+    # register this node function
     registry.registerNodeType(nodeType)
 
 
