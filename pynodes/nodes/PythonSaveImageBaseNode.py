@@ -16,6 +16,7 @@ class PythonSaveImageBaseNode(nodes.PythonBaseNode):
     empty = np.zeros([6, 9, 4], dtype=np.float32)
 
     def init(self, context):
+        super().init(context)
         self.inputs.new('PyObjectSocketType', "Image")
 
     def run(self):

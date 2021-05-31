@@ -35,6 +35,7 @@ class PythonLoadImageNode(nodes.PythonNode):
         layout.prop(self, "filename")
 
     def init(self, context):
+        super().init(context)
         self.outputs.new('PyObjectSocketType', "Image")
 
     def run(self):

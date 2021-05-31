@@ -17,6 +17,9 @@ class FlashingNode(bpy.types.Node):
     flash_off_color = [0.0,0.0,0.0]
     flash_on = False
 
+    def init(self, context):
+        self.use_custom_color = True
+
     def set_flash_color(self, color):
         self.flash_on_color = color
 
