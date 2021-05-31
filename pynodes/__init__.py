@@ -10,26 +10,6 @@ bl_info = {
     "category": "Nodes",
 }
 
-<<<<<<< HEAD
-from pynodes import pythonnodes
-
-from pynodes import AutoNodeTypeAdder
-
-from pynodes import registry
-
-
-
-
-
-def register():
-    AutoNodeTypeAdder.addAllGlobals()
-    registry.registerAll()
-
-def unregister():
-    registry.unregisterAll()
-
-=======
-<<<<<<< HEAD
 import bpy
 from bpy.types import NodeTree, Node, NodeSocket
 
@@ -158,7 +138,7 @@ def register():
     bpy.types.NODE_MT_add.append(add_test_node_tree)
     # # register operators specific to python nodes
     # register_class(TestPythonNodesOperator)
-    
+
 def unregister():
     registry.unregisterAll()
     """
@@ -170,31 +150,3 @@ def unregister():
     """
     unregister_class(PythonCompositorTree)
     unregister_class(PyObjectSocket)
-
-
-=======
-from pynodes import pythonnodes
-
-from pynodes import AutoNodeTypeAdder
-
-from pynodes import registry
-
-
-
-
-
-def register():
-    AutoNodeTypeAdder.addAllGlobals()
-    registry.registerAll()
-
-def unregister():
-    registry.unregisterAll()
->>>>>>> main
-
->>>>>>> 49e4c650ea426d707e98ccd2725d5f4d6b2ff6a6
-if __name__ == '__main__':
-    try:
-        unregister()
-    except Exception as e:
-        print('no unregistering needed (problem?) e:', e)
-        register()

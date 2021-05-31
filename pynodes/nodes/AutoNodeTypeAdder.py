@@ -6,16 +6,8 @@ import bpy
 
 import numpy
 
-<<<<<<< HEAD:pynodes/AutoNodeTypeAdder.py
-=======
-<<<<<<< HEAD:pynodes/nodes/AutoNodeTypeAdder.py
 from pynodes import registry
 from pynodes.nodes import PythonNode
-=======
->>>>>>> 49e4c650ea426d707e98ccd2725d5f4d6b2ff6a6:pynodes/nodes/AutoNodeTypeAdder.py
-from pynodes import pythonnodes, registry
-
->>>>>>> main:pynodes/AutoNodeTypeAdder.py
 
 
 def addNodeType(func):
@@ -26,14 +18,7 @@ def addNodeType(func):
     except AttributeError as ae:
         qname = func.__class__.__name__
 
-<<<<<<< HEAD:pynodes/AutoNodeTypeAdder.py
-=======
-<<<<<<< HEAD:pynodes/nodes/AutoNodeTypeAdder.py
     class nodeType(PythonNode):
-=======
->>>>>>> 49e4c650ea426d707e98ccd2725d5f4d6b2ff6a6:pynodes/nodes/AutoNodeTypeAdder.py
-    class nodeType(pythonnodes.PythonNode):
->>>>>>> main:pynodes/AutoNodeTypeAdder.py
         # === Basics ===
         # Description string
         ''' %s ''' % docstr
@@ -66,15 +51,7 @@ def addNodeType(func):
 
             self.set_output(sig.return_annotation, output)
 
-<<<<<<< HEAD:pynodes/AutoNodeTypeAdder.py
-    registry.registerNodeType(nodeType, qname)
-=======
-<<<<<<< HEAD:pynodes/nodes/AutoNodeTypeAdder.py
     registry.registerNodeType(nodeType)
-=======
-    registry.registerNodeType(nodeType, qname)
->>>>>>> main:pynodes/AutoNodeTypeAdder.py
->>>>>>> 49e4c650ea426d707e98ccd2725d5f4d6b2ff6a6:pynodes/nodes/AutoNodeTypeAdder.py
 
 
 
