@@ -15,8 +15,10 @@ classes = []
 
 def registerNodeType(clazz):
 
-
-    category = clazz.bl_idname.split('.')[0]
+    try:
+        category = clazz.mmod
+    except AttributeError as ae:
+        category = 'Custom'
 
     if not category in registryDict.keys():
         registryDict[category] = []

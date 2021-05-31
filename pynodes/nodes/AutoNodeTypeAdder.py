@@ -11,12 +11,26 @@ from pynodes.nodes import PythonNode
 
 
 def add_node_type(func):
+    # Doc string
     docstr = func.__doc__
 
+
+    if hasattr(func, '__module__') and hasattr(func, '__name__'):
+        mod   = str(func.__module__)  # module name
+        qname = str(func.__name__) # function name
+    else: # its an object
+        mod   = str(func.__class__.__module__) # module name
+        qname = str(func.__class__.__name__ + ' object') # function name
+
+    # Call signature
     try:
-        qname = func.__qualname__
-    except AttributeError as ae:
-        qname = func.__class__.__name__
+        sig = inspect.signature(func)
+    except ValueError as ve:
+        print('ignoring', ve)
+        sig = type('obj', (object,), {'parameters': [], 'return_annotation': type(func)})
+
+
+    # print('sig', sig)
 
     class nodeType(PythonNode):
         # === Basics ===
@@ -26,14 +40,10 @@ def add_node_type(func):
         bl_idname = qname
         # Label for nice name display
         bl_label = qname
-        # Call signature
-        try:
-            sig = inspect.signature(func)
-        except ValueError as ve:
-            print('ignoring', ve)
-            sig = type('obj', (object,), {'parameters': [], 'return_annotation': type(func)})
 
-        # print('sig', sig)
+        # module
+        mmod = mod
+
 
         def init(self, context):
             for param in sig.parameters:
