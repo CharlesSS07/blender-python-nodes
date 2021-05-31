@@ -6,8 +6,13 @@ import bpy
 
 import numpy
 
+<<<<<<< HEAD:pynodes/nodes/AutoNodeTypeAdder.py
 from pynodes import registry
 from pynodes.nodes import PythonNode
+=======
+from pynodes import pythonnodes, registry
+
+>>>>>>> main:pynodes/AutoNodeTypeAdder.py
 
 
 def addNodeType(func):
@@ -18,7 +23,11 @@ def addNodeType(func):
     except AttributeError as ae:
         qname = func.__class__.__name__
 
+<<<<<<< HEAD:pynodes/nodes/AutoNodeTypeAdder.py
     class nodeType(PythonNode):
+=======
+    class nodeType(pythonnodes.PythonNode):
+>>>>>>> main:pynodes/AutoNodeTypeAdder.py
         # === Basics ===
         # Description string
         ''' %s ''' % docstr
@@ -51,7 +60,11 @@ def addNodeType(func):
 
             self.set_output(sig.return_annotation, output)
 
+<<<<<<< HEAD:pynodes/nodes/AutoNodeTypeAdder.py
     registry.registerNodeType(nodeType)
+=======
+    registry.registerNodeType(nodeType, qname)
+>>>>>>> main:pynodes/AutoNodeTypeAdder.py
 
 
 

@@ -10,6 +10,7 @@ bl_info = {
     "category": "Nodes",
 }
 
+<<<<<<< HEAD
 import bpy
 from bpy.types import NodeTree, Node, NodeSocket
 
@@ -152,10 +153,28 @@ def unregister():
     unregister_class(PyObjectSocket)
 
 
+=======
+from pynodes import pythonnodes
 
-if __name__ == "__main__":
+from pynodes import AutoNodeTypeAdder
+
+from pynodes import registry
+
+
+
+
+
+def register():
+    AutoNodeTypeAdder.addAllGlobals()
+    registry.registerAll()
+
+def unregister():
+    registry.unregisterAll()
+>>>>>>> main
+
+if __name__ == '__main__':
     try:
         unregister()
     except Exception as e:
-        print('Unregister error:', e)
-    register()
+        print('no unregistering needed (problem?) e:', e)
+        register()
