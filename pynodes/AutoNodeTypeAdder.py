@@ -6,18 +6,18 @@ import bpy
 
 import numpy
 
-from pynodes import __init__, registry
+from pynodes import pythonnodes, registry
 
 
 
 def addNodeType(func):
     docstr = func.__doc__
-    
-    try: 
+
+    try:
         qname = func.__qualname__
     except AttributeError as ae:
         qname = func.__class__.__name__
-    
+
     class nodeType(pythonnodes.PythonNode):
         # === Basics ===
         # Description string
@@ -32,28 +32,26 @@ def addNodeType(func):
         except ValueError as ve:
             print('ignoring', ve)
             sig = type('obj', (object,), {'parameters': [], 'return_annotation': type(func)})
-        
-        print('sig', sig)
-        
+
+        # print('sig', sig)
+
         def init(self, context):
             for param in sig.parameters:
                 self.inputs.new(param.name, param.annotation)
-            
+
             self.outputs.new(func.__name__, sig.return_annotation)
-            
-            self.setup_post_init_hooks()
-        
+
         def run(self):
             funcargs = {}
-            
+
             for param in sig.parameters:
                 funcargs[param.name] = self.getinput(param.name)
-            
+
             output = func(*funcargs)
-            
+
             self.set_output(sig.return_annotation, output)
-    
-    registry.register(nodeType)
+
+    registry.registerNodeType(nodeType, qname)
 
 
 
@@ -62,20 +60,22 @@ added = []
 def addScope(scope):
     for key, obj in scope.copy().items():
         if any([obj is elem for elem in added]):
-            print('skip')
-        else: 
+            # print('skip')
+            pass
+        else:
             added.append(obj)
-        
+
             if callable(obj):
-                print('callable', key)
+                # print('callable', key)
                 addNodeType(obj)
             elif isinstance(obj, types.ModuleType):
-                print('module', key)
+                # print('module', key)
                 addScope(vars(obj))
             else:
-                print('other', key)
+                # print('other', key)
+                pass
 
 
 
 def addAllGlobals():
-    addScope(vars())
+    addScope(globals())
