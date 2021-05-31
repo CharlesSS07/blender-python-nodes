@@ -111,6 +111,7 @@ class NODE_MT_add_test_node_tree(bpy.types.Operator):
             return {'FINISHED'}
 
 def add_test_node_tree(self, context):
+    self.layout.separator()
     self.layout.operator(
         NODE_MT_add_test_node_tree.bl_idname,
         text="Add test node tree")
@@ -123,6 +124,11 @@ def register():
     # register the essentials to building a PythonNode
     register_class(PythonCompositorTree)
     register_class(PyObjectSocket)
+
+    register_class(NODE_MT_add_test_node_tree)
+    bpy.types.NODE_MT_node.append(add_test_node_tree)
+    # # register operators specific to python nodes
+    # register_class(TestPythonNodesOperator)
     """
     # register every single PythonNode derivative
     for cls in node_classes:
@@ -134,10 +140,6 @@ def register():
 
     # register dropdown menues in node editor
     """
-    register_class(NODE_MT_add_test_node_tree)
-    bpy.types.NODE_MT_add.append(add_test_node_tree)
-    # # register operators specific to python nodes
-    # register_class(TestPythonNodesOperator)
 
 def unregister():
     registry.unregisterAll()
