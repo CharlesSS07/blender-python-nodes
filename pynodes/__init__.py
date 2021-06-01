@@ -27,130 +27,99 @@ class PythonCompositorTree(NodeTree):
     # Icon identifier
     bl_icon = 'NODETREE'
 
+
+
 # Custom socket type
-class PyObjectSocket(NodeSocket):
+class AbstractPyObjectSocket(NodeSocket):
     # Description string
-    '''Python node socket type'''
+    '''General python node socket type'''
+
+
+    # for storing the inputs and outputs of nodes without overriding default_value
+    # we can't change value of _value_, but we can set what it points to if its a list
+    _value_ = [None,]#: bpy.props.PointerProperty(type=bpy.types.Object, name='value', description='Pointer to object contained by the socket')
+
+    class Properties:
+        argvalue : bpy.props.StringProperty(
+            name = 'argvalue',
+            description = 'manually input value to argument for function',
+            default = '',
+            update = lambda s,c: self.manual_set(self.argvalue)#update_filename
+        )
+
+    def argvalue_update(self, value):
+        pass
+
+    def get_value(self):
+        if self.is_linked:
+            return self._value_[0]
+        else:
+            return self.argvalue
+
+    def set_value(self, value):
+        self._value_[0] = value
+
+
+    # Socket color
+    def draw_color(self, context, node):
+        return (1.0, 0.4, 0.216, 0.5)
+
+    def draw(self, context, layout, node, text):
+        layout.label(text=text)
+        # give default value selector when not linked
+        if not self.is_linked:
+            layout.prop(self, 'argvalue', text='')
+
+
+
+
+
+
+class PyObjectSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSocket):
+    ''' Python node socket type for normal function arguments and outputs '''
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'PyObjectSocketType'
     # Label for nice name display
     bl_label = "Python Object Socket"
 
-    # for storing the inputs and outputs of nodes without overriding default_value
-    # we can't change value of _value_, but we can set what it points to if its a list
-    _value_ = [None,]#: bpy.props.PointerProperty(type=bpy.types.Object, name='value', description='Pointer to object contained by the socket')
-
-
-    argvalue : bpy.props.StringProperty(
-        name='argvalue',
-        description='manually input value to argument for function',
-        default='',
-        update=lambda c,s: print('yay', c, s)#update_filename
-    )
-
-    def get_value(self):
-        if self.is_linked:
-            return self._value_[0]
-        else:
-            return self.argvalue
-
-    def set_value(self, value):
-        self._value_[0] = value
-
-    def draw(self, context, layout, node, text):
-        layout.label(text=text)
-        # give default value selector when not linked
-        if not self.is_linked:
-            layout.prop(self, 'argvalue', text='')
-
-    # Socket color
-    def draw_color(self, context, node):
-        return (1.0, 0.4, 0.216, 0.5)
 
 
 
 
-
-
-
-class PyObjectVarArgSocket(NodeSocket):
+class PyObjectVarArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSocket):
     # Description string
-    '''Python *args node socket type'''
+    '''Python node socket type for variable arguments (varargs, *args)'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'PyObjectVarArgSocketType'
     # Label for nice name display
     bl_label = 'Python *args Object Socket'
 
-    display_shape = 'DIAMOND'
+    def init(self, context):
+        # pin shape
+        self.display_shape = 'DIAMOND'
 
-    # for storing the inputs and outputs of nodes without overriding default_value
-    # we can't change value of _value_, but we can set what it points to if its a list
-    _value_ = [None,]#: bpy.props.PointerProperty(type=bpy.types.Object, name='value', description='Pointer to object contained by the socket')
-
-    def get_value(self):
-        return self._value_[0]
-
-    def set_value(self, value):
-        self._value_[0] = value
-
-    def draw(self, context, layout, node, text):
-        layout.label(text=text)
-
-    # Socket color
-    def draw_color(self, context, node):
-        return (1.0, 0.4, 0.216, 0.5)
+    def argvalue_update(self, value):
+        self.node.inputs.new(PyObjectVarArgSocket.bl_idname, '*arg')
 
 
 
 
 
-class PyObjectKWArgSocket(NodeSocket):
+class PyObjectKWArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSocket):
     # Description string
-    '''Python keyword args node socket type'''
+    '''Python node socket type for keyword argumnets'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'PyObjectKWArgSocketType'
     # Label for nice name display
     bl_label = 'Python *kwargs Object Socket'
 
-    display_shape = 'SQUARE'
+    def init(self, context):
+        # pin shape
+        self.display_shape = 'SQUARE'
 
-    # for storing the inputs and outputs of nodes without overriding default_value
-    # we can't change value of _value_, but we can set what it points to if its a list
-    _value_ = [None,]#: bpy.props.PointerProperty(type=bpy.types.Object, name='value', description='Pointer to object contained by the socket')
-
-
-    argvalue : bpy.props.StringProperty(
-        name='argvalue',
-        description='manually input value to argument for function',
-        default='',
-        update=lambda c,s: print('yay', c, s)#update_filename
-    )
-
+    # method to set the initial value of an argument
     def set_default(self, value):
         self.argvalue = value
-
-    def get_value(self):
-        if self.is_linked:
-            return self._value_[0]
-        else:
-            return self.argvalue
-
-    def set_value(self, value):
-        self._value_[0] = value
-
-    def draw(self, context, layout, node, text):
-        layout.label(text=text)
-        # give default value selector when not linked
-        if not self.is_linked:
-            layout.prop(self, 'argvalue', text='')
-
-    # Socket color
-    def draw_color(self, context, node):
-        return (1.0, 0.4, 0.216, 0.5)
-
-
-
-
 
 
 

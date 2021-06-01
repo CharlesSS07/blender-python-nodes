@@ -95,14 +95,14 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
         '''
         pass
 
-    def get_input(self, k, default_func):
+    def get_input(self, k, default_func=lambda:None):
         v = self.inputs[k]
         if v.is_linked and len(v.links)>0 and v.links[0].is_valid:
             o = v.links[0].from_socket
             value = o.get_value()
             return value
         v.set_value(None)
-        return default_func()
+        return v.get_value()
 
     def set_output(self, k, v):
         self.outputs[k].set_value(v)
