@@ -43,11 +43,11 @@ def add_node_type(func):
 
             # check if varargs (...) are in the signature
             if '...' in argstr:
-                args.append(('...', ''))
+                args.append(('*arg', ''))
                 print(qname, 'has varargs')
         else:
             args = [
-                ('...', '')
+                ('*arg', '')
             ]
 
     class nodeType(PythonNode):
@@ -71,7 +71,7 @@ def add_node_type(func):
             for i, arg in enumerate(args):
                 # add varargs socket
                 if arg[0] == '...':
-                    self.inputs.new(pynodes.PyObjectVarArgSocket.bl_idname, '*arg{}'.format(i))
+                    self.inputs.new(pynodes.PyObjectVarArgSocket.bl_idname, '*arg')
                 # add normal argument socket, if it doesn't have default (not a kwarg)
                 elif arg[1] == '':
                     self.inputs.new(pynodes.PyObjectSocket.bl_idname, arg[0])
