@@ -19,6 +19,7 @@ from pynodes.nodes.PythonBaseNode import PythonBaseNode
 
 from pynodes.nodes.PythonLoadImageNode import PythonLoadImageNode
 from pynodes.nodes.PythonSaveImageBaseNode import PythonSaveImageBaseNode
+from pynodes.nodes.PythonPrintResultBaseNode import PythonPrintResultBaseNode
 from pynodes.nodes.PythonWaitSecondsNode import PythonWaitSecondsNode
 
 from pynodes.nodes.AutoNodeTypeAdder import add_all_globals

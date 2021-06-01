@@ -96,7 +96,7 @@ def add_node_type(func):
             output = func(*funcargs) # TODO: should this be ran in a scope somehow?
 
             # send the output of the function to the output socket
-            self.set_output(pynodes.PyObjectSocket.bl_idname, qname)
+            self.set_output(qname, output)
 
     # register this node function
     registry.registerNodeType(nodeType)
