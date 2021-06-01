@@ -1,10 +1,10 @@
 import pynodes
 from pynodes import nodes
-# from pynodes.nodes import PythonBaseNode
+# from pynodes.nodes.PythonBaseNode import PythonBaseNodeProperties
 import numpy as np
 import bpy
 
-class PythonSaveImageBaseNode(nodes.PythonBaseNode):
+class PythonSaveImageBaseNode(nodes.PythonBaseNode.Properties, nodes.PythonBaseNode):
     # === Basics ===
     # Description string
     '''Save image to image viewer.'''

@@ -1,4 +1,5 @@
 import pynodes
+import traceback
 import bpy
 
 # Mix-in class for all custom nodes in this tree type.
@@ -8,36 +9,24 @@ class PythonCompositorTreeNode:
     def poll(cls, ntree):
         return ntree.bl_idname == pynodes.PythonCompositorTree.bl_idname
 
-class FlashingNode(bpy.types.Node):
+class ColorfulNode(bpy.types.Node):
     # === Basics ===
     # Description string
     '''Abstract node that can change colors.'''
 
-    flash_on_color = [1.0,0.0,0.0]
-    flash_off_color = bpy.context.preferences.themes[0].node_editor.node_backdrop[:3]
-    flash_on = False
-
     def init(self, context):
+        pass
+
+    def set_color(self, color):
         self.use_custom_color = True
+        self.color = color
 
-    def set_flash_color(self, color):
-        self.flash_on_color = color
-
-    def set_color_flash_on(self):
-        if not self.flash_on:
-            self.color = self.flash_on_color
-            self.flash_on = True
-            print(self.color, self.flash_off_color, self.flash_on_color)
-
-    def set_color_flash_off(self):
-        if self.flash_on:
-            self.color = self.flash_off_color
-            self.flash_on = False
-
+    def set_no_color(self):
+        self.use_custom_color = False
 
 # Derived from the Node base type.
 # Defines functionality of python node to only require that call is overloaded
-class PythonNode(FlashingNode, PythonCompositorTreeNode):
+class PythonNode(ColorfulNode, PythonCompositorTreeNode):
     # === Basics ===
     # Description string
     '''Abstract python node.'''
@@ -47,6 +36,45 @@ class PythonNode(FlashingNode, PythonCompositorTreeNode):
     bl_label = "Python Node"
     # Icon identifier
     bl_icon = 'SCRIPT'
+
+    # class Properties:
+    is_dirty = True
+    # bpy.props.BoolProperty(
+    #     name='dirty',
+    #     default=True
+    # )
+
+    class PythonNodeRunError(Exception):
+        '''
+        raised when a node has an error.
+        '''
+        def __init__(self, node, e):
+            self.node = node
+            self.ex = e
+            super().__init__(
+                f'Exception raised by node {node.bl_idname}:\n{e}'
+            )
+
+    def mark_dirty(self):
+        '''
+        Propogate to all downstream nodes that this nodes is not up to date.
+        '''
+        print('is_dirty', self.is_dirty)
+        self.is_dirty = True
+        print(self.is_dirty)
+        self.set_no_color()
+        for k in self.outputs.keys():
+            out = self.outputs[k]
+            if out.is_linked:
+                for o in out.links:
+                    node = o.to_socket.node
+                    #if not node is self and o.is_valid and not node.get_dirty():
+                    if not node is self:
+                        node.mark_dirty()
+
+
+    def get_dirty(self):
+        return self.is_dirty
 
     def is_connected_to_base(self):
         '''
@@ -79,33 +107,52 @@ class PythonNode(FlashingNode, PythonCompositorTreeNode):
     def set_output(self, k, v):
         self.outputs[k].set_value(v)
 
-    def update_value(self):
-        '''
-        Called when a value changes (links, or node settings). Runs node unless
-        this node is not connected to a base node. Propagates the nodes outputs
-        to the linked nodes, and calls update_value on them.
-        '''
-        if self.is_connected_to_base():
-            self.set_color_flash_off()
-            self.set_flash_color([0.0, 1.0, 0.0])
-            self.set_color_flash_on()
-            try:
-                self.run()
-                self.set_color_flash_off()
-            except Exception as e:
-                print(f'Node "{self.bl_label}" raised an exception:')
-                print(e)
-                self.set_color_flash_off()
-                self.set_flash_color([1.0, 0.0, 0.0])
-                self.set_color_flash_on()
-            self.propagate()
-        self.set_color_flash_off()
+    # def update_value(self):
+    #     '''
+    #     Called when a value changes (links, or node settings). Runs node unless
+    #     this node is not connected to a base node. Propagates the nodes outputs
+    #     to the linked nodes, and calls update_value on them.
+    #     '''
+    #     if self.is_connected_to_base():
+    #         try:
+    #             self.run()
+    #             self.set_color([0.0, 0.5, 0.0])
+    #         except Exception as e:
+    #             print(f'Node "{self.bl_label}" raised an exception:')
+    #             print(e)
+    #             self.set_color([0.5, 0.0, 0.0])
+    #         self.propagate()
 
     def update(self):
         '''
         Called when the node tree changes.
         '''
-        self.update_value()
+        self.mark_dirty()
+        # mark node, and downstream nodes as dirty/not current
+        # self.update_value()
+
+    def interrupt_execution(self, e):
+        raise PythonNode.PythonNodeRunError(self, e)
+
+    def compute_output(self):
+        for k in self.inputs.keys():
+            inp = self.inputs[k]
+            if inp.is_linked:
+                for i in inp.links:
+                    node = i.from_socket.node
+                    if not node is self and i.is_valid and node.get_dirty():
+                        node.compute_output()
+        try:
+            self.run()
+            self.is_dirty = False
+            print('is_dirty', self.is_dirty)
+            self.propagate()
+            self.set_color([0.0, 0.5, 0.0])
+        except Exception as e:
+            # self.mark_dirty()
+            self.set_color([0.5, 0.0, 0.0])
+            traceback.print_exc()
+            self.interrupt_execution(e)
 
     def propagate(self):
         '''
