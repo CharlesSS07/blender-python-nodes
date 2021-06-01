@@ -39,15 +39,16 @@ class AbstractPyObjectSocket(NodeSocket):
     # we can't change value of _value_, but we can set what it points to if its a list
     _value_ = [None,]#: bpy.props.PointerProperty(type=bpy.types.Object, name='value', description='Pointer to object contained by the socket')
 
+    # blender properties have to be wrapped in this so they are inherited in a way that blender properties can access them
     class Properties:
         argvalue : bpy.props.StringProperty(
             name = 'argvalue',
             description = 'manually input value to argument for function',
             default = '',
-            update = lambda s,c: self.manual_set(self.argvalue)#update_filename
+            update = lambda s,c: s.argvalue_updated()
         )
 
-    def argvalue_update(self, value):
+    def argvalue_updated(self):
         pass
 
     def get_value(self):
@@ -67,7 +68,7 @@ class AbstractPyObjectSocket(NodeSocket):
     def draw(self, context, layout, node, text):
         layout.label(text=text)
         # give default value selector when not linked
-        if not self.is_linked:
+        if not self.is_linked and not self.is_output:
             layout.prop(self, 'argvalue', text='')
 
 
@@ -85,7 +86,6 @@ class PyObjectSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSocket):
 
 
 
-
 class PyObjectVarArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSocket):
     # Description string
     '''Python node socket type for variable arguments (varargs, *args)'''
@@ -94,12 +94,36 @@ class PyObjectVarArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSo
     # Label for nice name display
     bl_label = 'Python *args Object Socket'
 
-    def init(self, context):
+    def __init__(self):
+        super().__init__()
         # pin shape
         self.display_shape = 'DIAMOND'
+        self.node.subscribe_to_update(self.node_updated)
 
-    def argvalue_update(self, value):
-        self.node.inputs.new(PyObjectVarArgSocket.bl_idname, '*arg')
+
+    # var args nodes automatically remove or add more of themselves as they are used
+    def node_updated(self):
+        self.update()
+
+    def argvalue_updated(self):
+        self.update()
+
+    def update(self):
+        emptyvarargpins = 0
+        # count the number of non-linked, empty sibling vararg pins
+        for input in self.node.inputs:
+            if input.bl_idname == PyObjectVarArgSocket.bl_idname:
+                if input.argvalue == '' and not input.is_linked:
+                    emptyvarargpins = emptyvarargpins + 1
+
+        # there is at least one other empty non-linked one (other than self)
+        if emptyvarargpins > 1:
+            # remove self if empty and not linked
+            if self.argvalue == '' and not self.is_linked:
+                self.node.inputs.remove(self)
+        # create new pin if there is not enough
+        elif emptyvarargpins < 1:
+            self.node.inputs.new(PyObjectVarArgSocket.bl_idname, '*arg')
 
 
 
@@ -113,11 +137,12 @@ class PyObjectKWArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSoc
     # Label for nice name display
     bl_label = 'Python *kwargs Object Socket'
 
-    def init(self, context):
+    def __init__(self):
+        super().__init__()
         # pin shape
         self.display_shape = 'SQUARE'
 
-    # method to set the initial value of an argument
+    # method to set the default value defined by the kwargs
     def set_default(self, value):
         self.argvalue = value
 

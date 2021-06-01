@@ -33,7 +33,7 @@ class PythonBaseNode(nodes.PythonNode):
             traceback.print_exc()
 
     def draw_buttons(self, context, layout):
-        print(type(layout))
+        # print(type(layout))
         # layout.operator()
         layout.prop(self, 'is_current')
 

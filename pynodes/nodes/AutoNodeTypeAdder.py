@@ -80,10 +80,11 @@ def add_node_type(func):
                         self.inputs
                     ))
             kwargs = list(filter( # get all the input pins that are kwargs
-                        lambda input: input.bl_idname == pynodes.PyObjectVarArgSocket.bl_idname,
+                        lambda input: input.bl_idname == pynodes.PyObjectKWArgSocket.bl_idname,
                         self.inputs
                     ))
 
+            # get the values
             posvals = list([input.get_value() for input in posargs])
 
             kwdict = dict({
