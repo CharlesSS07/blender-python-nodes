@@ -29,10 +29,12 @@ class PythonBaseNode(nodes.PythonNode):
         try:
             super().compute_output()
         except nodes.PythonNode.PythonNodeRunError as e:
+            self.is_current = False
             traceback.print_exc()
 
     def draw_buttons(self, context, layout):
-        # print(dir(layout))
+        print(type(layout))
+        # layout.operator()
         layout.prop(self, 'is_current')
 
     # Detail buttons in the sidebar.
