@@ -17,7 +17,7 @@ class PythonSaveImageBaseNode(nodes.PythonBaseNode):
 
     def init(self, context):
         super().init(context)
-        self.inputs.new('PyObjectSocketType', "Image")
+        self.inputs.new(pynodes.PyObjectSocket.bl_idname, "Image")
 
     def run(self):
         array = self.get_input("Image", lambda:self.empty)

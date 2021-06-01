@@ -30,8 +30,8 @@ class PythonWaitSecondsNode(nodes.PythonNode):
 
     def init(self, context):
         super().init(context)
-        self.inputs.new('PyObjectSocketType', "Anything")
-        self.outputs.new('PyObjectSocketType', "Anything")
+        self.inputs.new(pynodes.PyObjectSocket.bl_idname, "Anything")
+        self.outputs.new(pynodes.PyObjectSocket.bl_idname, "Anything")
 
     def run(self):
         inp = self.get_input("Anything", lambda:None)

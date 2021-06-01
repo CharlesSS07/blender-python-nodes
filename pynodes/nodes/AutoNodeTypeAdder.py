@@ -40,6 +40,11 @@ def add_node_type(func):
             argstr = sigmatch.group(2)
             # list of arguments: [ (argument name, default value), ... ]
             args = re.findall(r'(\w+)=?([^,]+)?', argstr)
+
+            # check if varargs (...) are in the signature
+            if '...' in argstr:
+                args.append(('...', ''))
+                print(qname, 'has varargs')
         else:
             args = [
                 ('...', '')
@@ -54,20 +59,31 @@ def add_node_type(func):
         mmod = mod
 
         # Optional identifier string. If not explicitly defined, the python class name is used.
-        bl_idname = qname
+        bl_idname = mmod + '.' + qname
         # Label for nice name display
-        bl_label = qname
+        bl_label = mmod + '.' + qname
 
 
         def init(self, context):
             super().init(context)
 
             # add each of the function arguments as pins
-            for arg in args:
-                self.inputs.new(pynodes.PyObjectSocketType, arg[0])
+            for i, arg in enumerate(args):
+                # add varargs socket
+                if arg[0] == '...':
+                    self.inputs.new(pynodes.PyObjectVarArgSocket.bl_idname, '*arg{}'.format(i))
+                # add normal argument socket, if it doesn't have default (not a kwarg)
+                elif arg[1] == '':
+                    self.inputs.new(pynodes.PyObjectSocket.bl_idname, arg[0])
+                # add keyword argument socket, with default value
+                else:
+                    self.inputs.new(pynodes.PyObjectKWArgSocket.bl_idname, arg[0])
+                    self.inputs[arg[0]].set_default(arg[1])
+
+
 
             # add the output pin
-            self.outputs.new(pynodes.PyObjectSocketType, qname)
+            self.outputs.new(pynodes.PyObjectSocket.bl_idname, qname)
 
         def run(self):
             # collect the inputs
@@ -80,7 +96,7 @@ def add_node_type(func):
             output = func(*funcargs) # TODO: should this be ran in a scope somehow?
 
             # send the output of the function to the output socket
-            self.set_output(pynodes.PyObjectSocketType, qname)
+            self.set_output(pynodes.PyObjectSocket.bl_idname, qname)
 
     # register this node function
     registry.registerNodeType(nodeType)

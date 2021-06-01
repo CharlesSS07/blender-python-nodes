@@ -12,7 +12,7 @@ class PythonLoadImageNode(nodes.PythonNode):
     bl_idname = 'PythonLoadImageNode'
     # Label for nice name display
     bl_label = "Python Image Loader"
-
+    
     filename : bpy.props.StringProperty(
         name='Filename',
         description="Filepath of image.",
@@ -31,7 +31,7 @@ class PythonLoadImageNode(nodes.PythonNode):
 
     def init(self, context):
         super().init(context)
-        self.outputs.new('PyObjectSocketType', "Image")
+        self.outputs.new(pynodes.PyObjectSocket.bl_idname, "Image")
 
     def run(self):
         img = bpy.data.images.load(self.filename, check_existing=True)
