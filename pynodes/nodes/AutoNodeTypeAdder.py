@@ -88,7 +88,7 @@ def add_node_type(func):
         def run(self):
             # collect the inputs
             funcargs = dict({
-                arg[0]: self.getinput(arg[0])
+                arg[0]: self.get_input(arg[0])
                 for arg in args
             })
 
