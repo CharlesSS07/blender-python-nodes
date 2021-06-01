@@ -70,10 +70,15 @@ class PythonCompositorNodeCategory(NodeCategory):
     def poll(cls, context):
         return context.space_data.tree_type == PythonCompositorTree.bl_idname
 
-class NODE_MT_add_test_node_tree(bpy.types.Operator):
+class PythonCompositorOperator(bpy.types.Operator):
+    @classmethod
+    def poll(cls, context):
+        return context.space_data.tree_type == PythonCompositorTree.bl_idname
+
+class NODE_MT_add_test_node_tree(PythonCompositorOperator):
     """Programmatically create node tree for testing, if it dosen't already exist."""
     bl_idname = "node.add_test_node_tree"
-    bl_label = "Add test node tree"
+    bl_label = "Add test node tree."
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -96,7 +101,7 @@ def add_test_node_tree(self, context):
     self.layout.separator()
     self.layout.operator(
         NODE_MT_add_test_node_tree.bl_idname,
-        text="Add test node tree")
+        text="Add Test Node Tree")
 
 
 from pynodes import registry
