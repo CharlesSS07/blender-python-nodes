@@ -6,9 +6,12 @@ Blender Python Nodes is a blender addon that enables python programming using on
 
   ~~2. make errors turn node red,~~ and be traceable
 
- ~~ 3. auto convert python functions into nodes~~
+  ~~3. auto convert python functions into nodes~~
 
- ~~ 4. auto convert python modules into nodes in categories~~
+  ~~4. auto convert python modules into nodes in categories~~
+
+  - Run all functions and interpret python in seperate python interepreter module? So it is scoped together and doesn't clash with scope of run method in node class?
+        - nodes could be "compiled" into a "file" (or just large string) for running, for speed and seperation
 
   5. implement blender utility nodes:
 
@@ -38,10 +41,11 @@ Blender Python Nodes is a blender addon that enables python programming using on
   8. special functions like if, while, for, try, def, class
 
 # Goals:
+
   1. be able to make crazy tiktoks of people without them knowing using only nf
 
   2. make well-selling nft art
 
   3. demonstrate societal changing capicy of nf
-  
+
   4. finish before end of summer
