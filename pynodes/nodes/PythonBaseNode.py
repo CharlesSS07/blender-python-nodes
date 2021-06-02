@@ -32,12 +32,6 @@ class PythonBaseNode(nodes.PythonNode):
 
     class Properties:
         pass
-    #     is_current : bpy.props.BoolProperty(
-    #         name='Updated Checkbox',
-    #         description="Check to compute output. Automatically unchecked when value is out of date.",
-    #         default=False,
-    #         update=lambda s,c:s.compute_output()
-    #     )
 
     def mark_dirty(self):
         self.is_current = False

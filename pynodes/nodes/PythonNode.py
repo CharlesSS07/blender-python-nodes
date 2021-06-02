@@ -59,9 +59,7 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
         '''
         Propogate to all downstream nodes that this nodes is not up to date.
         '''
-        print('is_dirty', self.is_dirty)
         self.is_dirty = True
-        print(self.is_dirty)
         self.set_no_color()
         for k in self.outputs.keys():
             out = self.outputs[k]
@@ -125,13 +123,28 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
     #             self.set_color([0.5, 0.0, 0.0])
     #         self.propagate()
 
+    update_subscribers = []
+
+    def subscribe_to_update(self, callback):
+        self.update_subscribers.append(callback)
+
+    def unsubscribe_to_update(self, callback):
+        self.update_subscribers.remove(callback)
+
     def update(self):
         '''
         Called when the node tree changes.
         '''
         self.mark_dirty()
+        for callback in self.update_subscribers:
+            try:
+                callback()
+            except Exception as e:
+                print("PyNodes WARNING - error encountered in node tree update:", e, "unsubscribing the function that caused this")
+                self.unsubscribe_to_update(callback)
         # mark node, and downstream nodes as dirty/not current
         # self.update_value()
+
 
     def interrupt_execution(self, e):
         raise PythonNode.PythonNodeRunError(self, e)
@@ -147,7 +160,6 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
         try:
             self.run()
             self.is_dirty = False
-            print('is_dirty', self.is_dirty)
             self.propagate()
             self.set_color([0.0, 0.5, 0.0])
         except Exception as e:
