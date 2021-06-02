@@ -20,7 +20,7 @@ class PythonSaveImageBaseNode(nodes.PythonBaseNode.Properties, nodes.PythonBaseN
         self.inputs.new(pynodes.PyObjectSocket.bl_idname, "Image")
 
     def run(self):
-        array = self.get_input("Image", lambda:self.empty)
+        array = self.get_input("Image")
         alpha = array.shape[2]==4
         print(array.shape, array.min(), array.max())
         if self.bl_label in bpy.data.images.keys():

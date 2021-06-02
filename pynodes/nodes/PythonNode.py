@@ -68,8 +68,7 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
             if out.is_linked:
                 for o in out.links:
                     node = o.to_socket.node
-                    #if not node is self and o.is_valid and not node.get_dirty():
-                    if not node is self:
+                    if not node is self and o.is_valid and not node.get_dirty():
                         node.mark_dirty()
 
 
@@ -100,6 +99,9 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
         if v.is_linked and len(v.links)>0 and v.links[0].is_valid:
             o = v.links[0].from_socket
             value = o.get_value()
+            if value is None or o.node.get_dirty():
+                o.node.compute_output()
+            value = o.get_value();
             return value
         v.set_value(None)
         return v.get_value()
@@ -152,7 +154,7 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
             # self.mark_dirty()
             self.set_color([0.5, 0.0, 0.0])
             traceback.print_exc()
-            self.interrupt_execution(e)
+            # self.interrupt_execution(e)
 
     def propagate(self):
         '''

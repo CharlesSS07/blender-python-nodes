@@ -9,9 +9,11 @@ from nodeitems_utils import NodeCategory, NodeItem
 
 import pynodes
 
-registryDict = {}
+node_registry_dict = {}
 
-classes = []
+node_classes = []
+
+operator_classes = []
 
 def registerNodeType(clazz):
 
@@ -20,19 +22,24 @@ def registerNodeType(clazz):
     except AttributeError as ae:
         category = 'Custom'
 
-    if not category in registryDict.keys():
-        registryDict[category] = []
-    registryDict[category].append(clazz)
+    if not category in node_registry_dict.keys():
+        node_registry_dict[category] = []
+    node_registry_dict[category].append(clazz)
 
-    if not clazz in classes:
-        classes.append(clazz)
+    if not clazz in node_classes:
+        node_classes.append(clazz)
 
+def registerOperator(clazz):
 
+    if clazz not in operator_classes:
+        operator_classes.append(clazz)
 
 def unregisterAll():
     try:
         nodeitems_utils.unregister_node_categories('pythonGlobalFuncs')
-        for cls in reversed(classes):
+        for cls in reversed(node_classes):
+            bpy.utils.unregister_class(cls)
+        for cls in reversed(operator_classes):
             bpy.utils.unregister_class(cls)
     except RuntimeError as re:
         print('re', re, 'caught')
@@ -40,7 +47,10 @@ def unregisterAll():
 def registerAll():
     node_categories = []
 
-    for category, clazzes in sorted(registryDict.items()):
+    for cls in operator_classes:
+        bpy.utils.register_class(cls)
+
+    for category, clazzes in sorted(node_registry_dict.items()):
         cat = pynodes.PythonCompositorNodeCategory(category.replace('.', '_'), category, items=
                 list([
                     NodeItem(clazz.bl_idname)
@@ -48,7 +58,7 @@ def registerAll():
             )
         node_categories.append(cat)
 
-    for cls in classes:
+    for cls in node_classes:
         bpy.utils.register_class(cls)
 
     nodeitems_utils.register_node_categories('pythonGlobalFuncs', node_categories)

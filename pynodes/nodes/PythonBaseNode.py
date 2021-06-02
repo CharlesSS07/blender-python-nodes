@@ -3,6 +3,24 @@ import traceback
 from pynodes import nodes
 # from pynodes.nodes import PythonNode
 
+class EvaluateNodesOperator(bpy.types.Operator):
+    """Cause active python node tree to evaluate results."""
+    bl_idname = "node.evaluate_python_node_tree"
+    bl_label = ""
+    bl_icon = "PLAY"
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space.type == 'NODE_EDITOR'
+
+    def execute(self, context):
+        context.node.compute_output()
+        return {'FINISHED'}
+
+from pynodes import registry
+registry.registerOperator(EvaluateNodesOperator)
+
 class PythonBaseNode(nodes.PythonNode):
     # === Basics ===
     # Description string
@@ -13,12 +31,13 @@ class PythonBaseNode(nodes.PythonNode):
     bl_label = "Python Base Node"
 
     class Properties:
-        is_current : bpy.props.BoolProperty(
-            name='Updated Checkbox',
-            description="Check to compute output. Automatically unchecked when value is out of date.",
-            default=False,
-            update=lambda s,c:s.compute_output()
-        )
+        pass
+    #     is_current : bpy.props.BoolProperty(
+    #         name='Updated Checkbox',
+    #         description="Check to compute output. Automatically unchecked when value is out of date.",
+    #         default=False,
+    #         update=lambda s,c:s.compute_output()
+    #     )
 
     def mark_dirty(self):
         self.is_current = False
@@ -29,18 +48,16 @@ class PythonBaseNode(nodes.PythonNode):
         try:
             super().compute_output()
         except nodes.PythonNode.PythonNodeRunError as e:
-            self.is_current = False
+            print('Python Nodes caught the following error:')
             traceback.print_exc()
 
     def draw_buttons(self, context, layout):
-        print(type(layout))
-        # layout.operator()
-        layout.prop(self, 'is_current')
+        layout.operator('node.evaluate_python_node_tree', icon='PLAY')
 
     # Detail buttons in the sidebar.
     # If this function is not defined, the draw_buttons function is used instead
     def draw_buttons_ext(self, context, layout):
-        layout.prop(self, 'is_current')
+        layout.operator('node.evaluate_python_node_tree', icon='PLAY')
 
     def is_connected_to_base(self):
         return True
