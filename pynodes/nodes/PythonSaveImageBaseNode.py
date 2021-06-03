@@ -22,14 +22,15 @@ class PythonSaveImageBaseNode(nodes.PythonBaseNode.Properties, nodes.PythonBaseN
     def run(self):
         array = self.get_input("Image")
         alpha = array.shape[2]==4
-        print(array.shape, array.min(), array.max())
         if self.bl_label in bpy.data.images.keys():
             bpy.data.images.remove(bpy.data.images[self.bl_label])
-        image = bpy.data.images.new(self.bl_label, alpha=alpha, width=array.shape[1], height=array.shape[0])
-#        image.pixels = array.ravel()
-        bgr = np.stack([array[:,:,0], array[:,:,1], array[:,:,2], array[:,:,3]], axis=-1)
-        print(bgr.shape)
-        image.pixels = bgr.ravel()
+        image = bpy.data.images.new(
+            self.bl_label,
+            alpha=alpha,
+            width=array.shape[1],
+            height=array.shape[0]
+        )
+        image.pixels = array.ravel()
 
 from pynodes import registry
 registry.registerNodeType(PythonSaveImageBaseNode)
