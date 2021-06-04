@@ -109,8 +109,6 @@ def add_node_type(func):
     # register this node function
     registry.registerNodeType(nodeType)
 
-
-
 added = []
 
 def add_scope(scope):
@@ -127,19 +125,21 @@ def add_scope(scope):
             else:
                 pass # TODO: do something about constants or non-module non-callables?
                 # make nodes that are just for a modules constants, no inputs just outputs
-def add_basics():
-    scope = {}
-    import numpy as np
-    import bpy
-    import os
-    import sys
-    scope = {
-        'np':np,
-        'bpy':bpy,
-        'os':os,
-        'sys':sys
-    }
-    add_scope(scope)
+
+# def add_basics(): # adds recursivley, getting into all globals
+#     scope = {}
+#     import numpy as np
+#     import bpy
+#     import os
+#     import sys
+#     scope = {
+#         'np':np,
+#         'bpy':bpy,
+#         'os':os,
+#         'sys':sys
+#     }
+#     print(scope)
+#     add_scope(scope)
 
 def add_all_globals():
     add_scope(globals())

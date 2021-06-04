@@ -22,6 +22,9 @@ def registerNodeType(clazz):
     except AttributeError as ae:
         category = 'Custom'
 
+    if category.startswith('_'):
+        return
+
     if not category in node_registry_dict.keys():
         node_registry_dict[category] = []
     node_registry_dict[category].append(clazz)
@@ -51,11 +54,15 @@ def registerAll():
         bpy.utils.register_class(cls)
 
     for category, clazzes in sorted(node_registry_dict.items()):
-        cat = pynodes.PythonCompositorNodeCategory(category.replace('.', '_'), category, items=
-                list([
-                    NodeItem(clazz.bl_idname)
-                for clazz in clazzes])
-            )
+        cat = pynodes.PythonCompositorNodeCategory(
+            category.replace('.', '_'),
+            category,
+            items=
+            [
+                NodeItem(clazz.bl_idname)
+                for clazz in clazzes if not clazz.bl_idname.split('.')[-1].startswith('_')
+            ]
+        )
         node_categories.append(cat)
 
     for cls in node_classes:
