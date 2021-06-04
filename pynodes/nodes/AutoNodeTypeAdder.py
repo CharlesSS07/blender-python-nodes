@@ -24,8 +24,6 @@ def add_node_type(func):
         mod   = str(func.__class__.__module__) # module name
         qname = str(func.__class__.__name__ + ' object') # function name
 
-
-
     # getting the arguments to the function
     try:
         # use inspect to get call signature
@@ -33,12 +31,23 @@ def add_node_type(func):
 
     except ValueError as ve:
         # parse docstring with regex to find call signature
-        sigmatch = re.match(r'(\w+)\((.*)\)', docstr)
-        if sigmatch is not None:
-            qname = sigmatch.group(1)
-            argstr = sigmatch.group(2)
-        else:
+        try:
+            # basically find a word with a (, and if there is a matching () inside of it, ignore that ) and find the next )
+            sigmatch = re.findall(r'(\w+)\((.*?\(.*?\).*?|.*?)\)', docstr)[0]
+            qname = sigmatch[0]
+            i = 0
+            def count_repl(_):
+                nonlocal i
+                i+=1
+                return f'tuple_arg_{int(i):03d}'
+            argstr = re.sub(r'\(.*?\)', count_repl, sigmatch[1])
+        except Exception as e:
             argstr = '...'
+        # r'(\w+)\((.*?)(\)\\n)', docstr) # worked for test cases
+        # r'(\w+)\(((?:[^)(]+|(?P<R>))*)\)', docstr)
+        # r'(\w+)\((.*)\)', docstr)
+        # r'(\w+)\((.*)\)\\n', docstr)
+        # r'(\w+)\((.*)\)', docstr) # original regex
 
     arglist = argstr.split(',')
 
@@ -53,7 +62,6 @@ def add_node_type(func):
         # Label for nice name display
         bl_label = mmod + '.' + qname
 
-
         def init(self, context):
             super().init(context)
 
@@ -63,7 +71,7 @@ def add_node_type(func):
                     key, value = arg.split('=')
                     self.inputs.new(pynodes.PyObjectKWArgSocket.bl_idname, key.strip())
                     self.inputs[key.strip()].set_default(value.strip())
-                elif arg.strip() == '...' or arg.strip()[0] == '*':
+                elif arg.strip() == '...' or arg.strip().startswith('*'):
                     self.inputs.new(pynodes.PyObjectVarArgSocket.bl_idname, '*arg')
                 else:
                     self.inputs.new(pynodes.PyObjectSocket.bl_idname, arg.strip())
@@ -118,8 +126,20 @@ def add_scope(scope):
                 add_scope(vars(obj))
             else:
                 pass # TODO: do something about constants or non-module non-callables?
-
-
+                # make nodes that are just for a modules constants, no inputs just outputs
+def add_basics():
+    scope = {}
+    import numpy as np
+    import bpy
+    import os
+    import sys
+    scope = {
+        'np':np,
+        'bpy':bpy,
+        'os':os,
+        'sys':sys
+    }
+    add_scope(scope)
 
 def add_all_globals():
     add_scope(globals())

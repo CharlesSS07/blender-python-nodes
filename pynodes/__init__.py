@@ -27,7 +27,29 @@ class PythonCompositorTree(NodeTree):
     # Icon identifier
     bl_icon = 'NODETREE'
 
+def get_node_execution_scope():
+    '''
+    Returns the scope to be used when evaluating python node inputs.
+    Quickly get a bunch of constants, can be extracted and modified to
+    have more constants or packages later. Note that many python
+    builtins are already in the scope by default, such as int or str.
+    '''
+    import numpy as np
+    import bpy
+    import os
+    import sys
+    # tensorflow, ffmpeg, gmic qt, osl, PIL...
+    return {
+        'pi':np.pi,
+        'tau':np.pi*2,
+        'e':np.e,
+        'np':np,
+        'bpy':bpy,
+        'os':os,
+        'sys':sys
+    }
 
+node_execution_scope = get_node_execution_scope()
 
 # Custom socket type
 class AbstractPyObjectSocket(NodeSocket):
@@ -55,11 +77,10 @@ class AbstractPyObjectSocket(NodeSocket):
         if self.is_linked:
             return self._value_[0]
         else:
-            return self.argvalue
+            return eval(self.argvalue, node_execution_scope)
 
     def set_value(self, value):
         self._value_[0] = value
-
 
     # Socket color
     def draw_color(self, context, node):
@@ -71,20 +92,12 @@ class AbstractPyObjectSocket(NodeSocket):
         if not self.is_linked and not self.is_output:
             layout.prop(self, 'argvalue', text='')
 
-
-
-
-
-
 class PyObjectSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSocket):
     ''' Python node socket type for normal function arguments and outputs '''
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'PyObjectSocketType'
     # Label for nice name display
     bl_label = "Python Object Socket"
-
-
-
 
 class PyObjectVarArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSocket):
     # Description string
@@ -99,7 +112,6 @@ class PyObjectVarArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSo
         # pin shape
         self.display_shape = 'DIAMOND'
         self.node.subscribe_to_update(self.node_updated)
-
 
     # var args nodes automatically remove or add more of themselves as they are used
     def node_updated(self):
@@ -124,10 +136,6 @@ class PyObjectVarArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSo
         # create new pin if there is not enough
         elif emptyvarargpins < 1:
             self.node.inputs.new(PyObjectVarArgSocket.bl_idname, '*arg')
-
-
-
-
 
 class PyObjectKWArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSocket):
     # Description string
@@ -199,8 +207,10 @@ def add_test_node_tree(self, context):
 
 
 from pynodes import registry
+from pynodes import helpers
 
 def register():
+
     registry.registerAll()
 
     from bpy.utils import register_class

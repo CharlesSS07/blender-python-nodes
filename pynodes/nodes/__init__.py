@@ -22,5 +22,5 @@ from pynodes.nodes.PythonSaveImageBaseNode import PythonSaveImageBaseNode
 from pynodes.nodes.PythonPrintResultBaseNode import PythonPrintResultBaseNode
 from pynodes.nodes.PythonWaitSecondsNode import PythonWaitSecondsNode
 
-from pynodes.nodes.AutoNodeTypeAdder import add_all_globals
-add_all_globals()
+from pynodes.nodes.AutoNodeTypeAdder import add_basics
+add_basics()
