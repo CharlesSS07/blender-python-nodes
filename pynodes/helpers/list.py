@@ -1,6 +1,6 @@
 
-def create(element, *args):
-    return [element, *args]
+def create(*args):
+    return [*args]
 
 def append(list, *args):
     lst = list.copy()

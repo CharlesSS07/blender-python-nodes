@@ -93,7 +93,10 @@ def add_node_type(func):
                     ))
 
             # get the values
-            posvals = [input.get_value() for input in posargs if input.is_linked or not input.argvalue=='']
+            posvals = [
+                input.get_value()
+                for input in posargs if input.is_linked or not input.argvalue==''
+            ]
 
             kwdict = dict({
                 input.name: input.get_value()

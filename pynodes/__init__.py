@@ -77,9 +77,6 @@ class AbstractPyObjectSocket(NodeSocket):
         if self.is_linked:
             return self._value_[0]
         else:
-            print('argvalue', self.argvalue)
-            if self.argvalue=='':
-                return None
             return eval(self.argvalue, node_execution_scope)
 
     def set_value(self, value):
