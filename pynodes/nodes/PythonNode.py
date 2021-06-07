@@ -1,6 +1,7 @@
 import pynodes
 import traceback
 import bpy
+import numpy as np
 
 # Mix-in class for all custom nodes in this tree type.
 # Defines a poll function to enable instantiation.
@@ -20,9 +21,11 @@ class ColorfulNode(bpy.types.Node):
     def set_color(self, color):
         self.use_custom_color = True
         self.color = color
+        # bpy.ops.wm.redraw_timer(type='DRAW', iterations=1)
 
     def set_no_color(self):
         self.use_custom_color = False
+        # bpy.ops.wm.redraw_timer(type='DRAW', iterations=1)
 
 # Derived from the Node base type.
 # Defines functionality of python node to only require that call is overloaded
@@ -136,13 +139,14 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
         Called when the node tree changes.
         '''
         self.mark_dirty()
+        # mark node, and downstream nodes as dirty/not current
+        # call all socket callbacks and other subscribers
         for callback in self.update_subscribers:
             try:
                 callback()
             except Exception as e:
-                print("PyNodes WARNING - error encountered in node tree update:", e, "unsubscribing the function that caused this")
                 self.unsubscribe_to_update(callback)
-        # mark node, and downstream nodes as dirty/not current
+
         # self.update_value()
 
 
@@ -170,11 +174,10 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
 
     def propagate(self):
         '''
-        Pass this nodes outputs to nodes liked to outputs. Call update_value on
+        Pass this nodes outputs to nodes linked to outputs. Call update_value on
         them after passing.
         '''
-        outputs = [self.outputs[k] for k in self.outputs.keys()]
-        for out in outputs:
+        for out in self.outputs:
             if out.is_linked:
                 for o in out.links:
                     if o.is_valid:

@@ -4,7 +4,7 @@ import inspect
 
 import bpy
 
-import numpy
+import numpy as np
 
 import pynodes
 from pynodes import registry
@@ -81,26 +81,26 @@ def add_node_type(func):
 
         def run(self):
             # collect the inputs
-            posargs = list(filter( # get all the input pins that are var args or normal args
-                        lambda input:
-                            input.bl_idname  == pynodes.PyObjectVarArgSocket.bl_idname or
-                            input.bl_idname == pynodes.PyObjectSocket.bl_idname,
-                        self.inputs
-                    ))
-            kwargs = list(filter( # get all the input pins that are kwargs
-                        lambda input: input.bl_idname == pynodes.PyObjectKWArgSocket.bl_idname,
-                        self.inputs
-                    ))
+            posargs = [
+                input
+                for input in self.inputs if
+                    input.bl_idname  == pynodes.PyObjectVarArgSocket.bl_idname or
+                    input.bl_idname == pynodes.PyObjectSocket.bl_idname
+            ]
+            kwargs = [
+                input
+                for input in self.inputs if input.bl_idname == pynodes.PyObjectKWArgSocket.bl_idname
+            ]
 
             # get the values
             posvals = [
-                input.get_value()
-                for input in posargs if input.is_linked or not input.argvalue==''
+                self.get_input(input.name)
+                for input in posargs if not input.is_empty()
             ]
 
             kwdict = dict({
-                input.name: input.get_value()
-                for input in kwargs if input.is_linked or not input.argvalue==''
+                input.name: self.get_input(input.name)
+                for input in kwargs if not input.is_empty()
             })
 
             # pass inputs to the function and run it

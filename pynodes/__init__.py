@@ -12,6 +12,7 @@ bl_info = {
 
 import bpy
 from bpy.types import NodeTree, Node, NodeSocket
+import numpy as np
 
 # TODO ideas:
 # 1. autorename sockets based off of return type, numpy array could show dtype, shape
@@ -70,6 +71,10 @@ class AbstractPyObjectSocket(NodeSocket):
             update = lambda s,c: s.argvalue_updated()
         )
 
+    def __init__(self):
+        super().__init__()
+        self.name = self.identifier
+
     def argvalue_updated(self):
         pass
 
@@ -78,6 +83,9 @@ class AbstractPyObjectSocket(NodeSocket):
             return self._value_[0]
         else:
             return eval(self.argvalue, node_execution_scope)
+
+    def is_empty(self):
+        return (not self.is_linked) and (self.argvalue=='')
 
     def set_value(self, value):
         self._value_[0] = value
@@ -115,9 +123,11 @@ class PyObjectVarArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSo
 
     # var args nodes automatically remove or add more of themselves as they are used
     def node_updated(self):
+        # print('node_updated', self)
         self.update()
 
     def argvalue_updated(self):
+        # print('argvalue_updated', self)
         self.update()
 
     def update(self):
@@ -133,6 +143,7 @@ class PyObjectVarArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSo
             # remove self if empty and not linked
             if self.argvalue == '' and not self.is_linked:
                 self.node.inputs.remove(self)
+                self.node.unsubscribe_to_update(self)
         # create new pin if there is not enough
         elif emptyvarargpins < 1:
             self.node.inputs.new(PyObjectVarArgSocket.bl_idname, '*arg')
@@ -153,8 +164,6 @@ class PyObjectKWArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSoc
     # method to set the default value defined by the kwargs
     def set_default(self, value):
         self.argvalue = value
-
-
 
 ### Node Categories ###
 # Node categories are a python system for automatically
