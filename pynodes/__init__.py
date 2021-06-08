@@ -80,11 +80,11 @@ class AbstractPyObjectSocket(NodeSocket):
         else:
             return eval(self.argvalue, node_execution_scope)
 
-    def is_empty(self):
-        return (not self.is_linked) and (self.argvalue=='')
-
     def set_value(self, value):
         self._value_[0] = value
+
+    def is_empty(self):
+        return (not self.is_linked) and (self.argvalue=='')
 
     # Socket color
     def draw_color(self, context, node):
@@ -115,18 +115,19 @@ class PyObjectVarArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSo
         super().__init__()
         # pin shape
         self.display_shape = 'DIAMOND'
-        self.node.subscribe_to_update(self.node_updated)
         self.name = self.identifier
         # socket must be indexible using name.
         # therefore force name to be unique like identifier
+        self.node.subscribe_to_update(self.node_updated)
+        # subscribe socket to node update events
 
     # var args nodes automatically remove or add more of themselves as they are used
     def node_updated(self):
-        # print('node_updated', self)
+        # print('node_updated', self.node, self)
         self.update()
 
     def argvalue_updated(self):
-        # print('argvalue_updated', self)
+        # print('argvalue_updated', self.node, self)
         self.update()
 
     def update(self):
@@ -134,15 +135,14 @@ class PyObjectVarArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSo
         # count the number of non-linked, empty sibling vararg pins
         for input in self.node.inputs:
             if input.bl_idname == PyObjectVarArgSocket.bl_idname:
-                if not input.is_empty():
-                    emptyvarargpins = emptyvarargpins + 1
+                if input.is_empty():
+                    emptyvarargpins+=1
 
         # there is at least one other empty non-linked one (other than self)
         if emptyvarargpins > 1:
             # remove self if empty and not linked
-            if self.argvalue == '' and not self.is_linked:
-                # self.node.unsubscribe_to_update(self)
-                self.node.inputs.remove(self)
+            self.node.unsubscribe_to_update(self)
+            self.node.inputs.remove(self)
         # create new pin if there is not enough
         elif emptyvarargpins < 1:
             self.node.inputs.new(PyObjectVarArgSocket.bl_idname, '*arg')
