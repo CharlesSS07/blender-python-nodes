@@ -40,6 +40,8 @@ Blender Python Nodes is a blender addon that enables python programming using on
 
   8. special functions like if, while, for, try, def, class
 
+  9. implement async
+
 # Goals:
 
   1. be able to make crazy tiktoks of people without them knowing using only nf

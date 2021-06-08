@@ -71,10 +71,6 @@ class AbstractPyObjectSocket(NodeSocket):
             update = lambda s,c: s.argvalue_updated()
         )
 
-    def __init__(self):
-        super().__init__()
-        self.name = self.identifier
-
     def argvalue_updated(self):
         pass
 
@@ -120,6 +116,9 @@ class PyObjectVarArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSo
         # pin shape
         self.display_shape = 'DIAMOND'
         self.node.subscribe_to_update(self.node_updated)
+        self.name = self.identifier
+        # socket must be indexible using name.
+        # therefore force name to be unique like identifier
 
     # var args nodes automatically remove or add more of themselves as they are used
     def node_updated(self):
@@ -135,15 +134,15 @@ class PyObjectVarArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSo
         # count the number of non-linked, empty sibling vararg pins
         for input in self.node.inputs:
             if input.bl_idname == PyObjectVarArgSocket.bl_idname:
-                if input.argvalue == '' and not input.is_linked:
+                if not input.is_empty():
                     emptyvarargpins = emptyvarargpins + 1
 
         # there is at least one other empty non-linked one (other than self)
         if emptyvarargpins > 1:
             # remove self if empty and not linked
             if self.argvalue == '' and not self.is_linked:
+                # self.node.unsubscribe_to_update(self)
                 self.node.inputs.remove(self)
-                self.node.unsubscribe_to_update(self)
         # create new pin if there is not enough
         elif emptyvarargpins < 1:
             self.node.inputs.new(PyObjectVarArgSocket.bl_idname, '*arg')

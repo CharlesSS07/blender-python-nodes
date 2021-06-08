@@ -37,13 +37,13 @@ class PythonBaseNode(nodes.PythonNode):
         self.is_current = False
         super().mark_dirty()
 
-    def compute_output(self):
-        print('compute_output run')
-        try:
-            super().compute_output()
-        except nodes.PythonNode.PythonNodeRunError as e:
-            print('Python Nodes caught the following error:')
-            traceback.print_exc()
+    # def compute_output(self):
+    #     print('compute_output run')
+    #     try:
+    #         super().compute_output()
+    #     except nodes.PythonNode.PythonNodeRunError as e:
+    #         print('Python Nodes caught the following error:')
+    #         traceback.print_exc()
 
     def draw_buttons(self, context, layout):
         layout.operator('node.evaluate_python_node_tree', icon='PLAY')

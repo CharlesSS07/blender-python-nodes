@@ -96,6 +96,9 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
         pass
 
     def get_input(self, k, default_func=lambda:None):
+        '''
+        Called by run to get value stored behind socket.
+        '''
         v = self.inputs[k]
         if v.is_linked and len(v.links)>0 and v.links[0].is_valid:
             o = v.links[0].from_socket
@@ -109,22 +112,6 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
 
     def set_output(self, k, v):
         self.outputs[k].set_value(v)
-
-    # def update_value(self):
-    #     '''
-    #     Called when a value changes (links, or node settings). Runs node unless
-    #     this node is not connected to a base node. Propagates the nodes outputs
-    #     to the linked nodes, and calls update_value on them.
-    #     '''
-    #     if self.is_connected_to_base():
-    #         try:
-    #             self.run()
-    #             self.set_color([0.0, 0.5, 0.0])
-    #         except Exception as e:
-    #             print(f'Node "{self.bl_label}" raised an exception:')
-    #             print(e)
-    #             self.set_color([0.5, 0.0, 0.0])
-    #         self.propagate()
 
     update_subscribers = []
 
@@ -145,32 +132,27 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
             try:
                 callback()
             except Exception as e:
+                traceback.print_exc()
                 self.unsubscribe_to_update(callback)
-
-        # self.update_value()
 
 
     def interrupt_execution(self, e):
         raise PythonNode.PythonNodeRunError(self, e)
 
     def compute_output(self):
-        for k in self.inputs.keys():
-            inp = self.inputs[k]
-            if inp.is_linked:
-                for i in inp.links:
-                    node = i.from_socket.node
-                    if not node is self and i.is_valid and node.get_dirty():
-                        node.compute_output()
+        # print(self, 'compute_output')
         try:
-            self.run()
-            self.is_dirty = False
+            if self.get_dirty():
+                self.set_color([0.0, 0.0, 0.5])
+                self.run()
+                self.is_dirty = False
             self.propagate()
             self.set_color([0.0, 0.5, 0.0])
         except Exception as e:
             # self.mark_dirty()
             self.set_color([0.5, 0.0, 0.0])
             traceback.print_exc()
-            # self.interrupt_execution(e)
+            self.interrupt_execution(e)
 
     def propagate(self):
         '''
@@ -182,4 +164,3 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
                 for o in out.links:
                     if o.is_valid:
                         o.to_socket.set_value(out.get_value())
-                        # o.to_socket.node.update_value()
