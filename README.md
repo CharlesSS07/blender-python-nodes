@@ -2,6 +2,8 @@
 This is a blender addon that enables python programming using only blender nodes! Help wanted!
 
 ![a python node tree](/readme-assets/a_python_node_tree.png)
+![another python node tree](/readme-assets/another_python_node_tree_shape_example.png)
+![a python node](/readme-assets/a_python_node.png)
 
 # How to Install into blender:
   1. run `./prepare-blender-addon.sh` in this directory
