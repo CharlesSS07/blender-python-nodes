@@ -6,20 +6,20 @@ This is a blender addon that enables python programming using only blender nodes
 ![a python node](/readme-assets/a_python_node.png)
 
 # How to Install into blender:
-  1. run `./prepare-blender-addon.sh` in this directory
+  1. run `./prepare-blender-addon.sh` in this directory (this is a convenience script)
   2. load blender, install the `pynodes.zip` file created by the previous line. Click [here](https://www.youtube.com/watch?v=vYh1qh9y1MI) to see how to install addons in blender.
 
 # How to develop this addon:
   1. use `which blender` to find the location of your blender executable installation
-  2. modify BLENDER_EXECUTABLE in blender-nodes.py to the absolut path of your executable (see blender-nodes.py for example)
+  2. modify BLENDER_EXECUTABLE in blender-nodes.py to the absolut path of your executable (see blender-nodes.py for example) (this is a convenience script which automatically installs the addon into blender upon loading up)
   3. make some changes... (copy one of the files in pynodes/nodes/ and modify the `init` function of the node to add/remove input and output sockets, change up the `run` function to access your own sockets, and execute your desired code.). See PythonPrintResultBaseNode.py for a very basic base node behavior (it prints out the output to the terminal).
 
 # Terminology:
   * Base node - node which executes the tree it is connected to return the result (could be saving contents to a file, printing result to terminal, displaying the result somewhere in blender, uploading something to the cloud, or sending an email)
   * Node - has inputs and outputs, but will never be executed unless attached to a base node
 
-# How do we get the python functions?
-	We use introspection to put all global modules into the add menu. We try to use python to get the parameters, and when we cant, we use some clever regex. This approach does not always work unfortunatley. At the moment, many python builtins (such as exec, print, and hundreds more basic python functions) don't work welle because python can't tell us their exact parameter signature. See `pynodes/nodes/AutoNodeTypeAdder.py` for the functions used to do this upon addon registration.
+# How do we get the python functions, and parameters?
+We use introspection to put all global modules into the add menu, and recursibly discover all modules. This means if you import ANY python library into the environment used by blender, you can access its functions. We try to use python to get the parameters, and when we cant, we use some clever regex. This approach does not always work unfortunatley. At the moment, many python builtins (such as exec, print, and hundreds more basic python functions) don't work welle because python can't tell us their exact parameter signature. See `pynodes/nodes/AutoNodeTypeAdder.py` for the functions used to do this upon addon registration.
 
 # Visions:
   1. an open source deep fake creation tool
