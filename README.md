@@ -1,6 +1,8 @@
 # Blender Python Nodes
 This is a blender addon that enables python programming using only blender nodes! Help wanted!
 
+!(/readme-assets/a_python_node_tree.png)
+
 # How to Install into blender:
   1. run `./prepare-blender-addon.sh` in this directory
   2. load blender, install the `pynodes.zip` file created by the previous line. Click [here](https://www.youtube.com/watch?v=vYh1qh9y1MI) to see how to install addons in blender.
