@@ -119,14 +119,19 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
         self.update_subscribers.append(callback)
 
     def unsubscribe_to_update(self, callback):
-        self.update_subscribers.remove(callback)
+        if callback in self.update_subscribers:
+        	self.update_subscribers.remove(callback)
 
     def update(self):
         '''
         Called when the node tree changes.
         '''
-        self.mark_dirty()
-        # mark node, and downstream nodes as dirty/not current
+        if not self.get_dirty():
+        	self.mark_dirty()
+            # mark node, and downstream nodes as dirty/not current
+        
+        for socket in self.inputs:
+            socket.node_updated()
         # call all socket callbacks and other subscribers
         for callback in self.update_subscribers:
             try:
