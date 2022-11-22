@@ -69,7 +69,7 @@ def add_node_type(func):
             for i, arg in enumerate(arglist):
                 if '=' in arg:
                     key, value = arg.split('=')
-                    self.inputs.new(pynodes.PyObjectKWArgSocket.bl_idname, key.strip())
+                    self.inputs.new(pynodes.PyObjectKwArgSocket.bl_idname, key.strip())
                     self.inputs[key.strip()].set_default(value.strip())
                 elif arg.strip() == '...' or arg.strip().startswith('*'):
                     self.inputs.new(pynodes.PyObjectVarArgSocket.bl_idname, '*arg')
@@ -89,7 +89,7 @@ def add_node_type(func):
             ]
             kwargs = [
                 input
-                for input in self.inputs if input.bl_idname == pynodes.PyObjectKWArgSocket.bl_idname
+                for input in self.inputs if input.bl_idname == pynodes.PyObjectKwArgSocket.bl_idname
             ]
 
             # get the values
