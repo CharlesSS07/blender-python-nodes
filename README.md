@@ -32,9 +32,9 @@ We use introspection to put all global modules into the add menu, and recursibly
 
   ~~2. make errors turn node red,~~ and be traceable
 
-  ~~3. auto convert python functions into nodes~~
+  ~~3. auto convert python functions into nodes~~ (has some issues such as converting builtin funcitons which have no signature)
 
-  ~~4. auto convert python modules into nodes in categories~~
+  ~~4. auto convert python modules into nodes in categories~~ (perhaps wasn't a particularly useful feature, now its just hard to find anything
 
   - Run all functions and interpret python in seperate python interepreter module? So it is scoped together and doesn't clash with scope of run method in node class?
         - nodes could be "compiled" into a "file" (or just large string) for running, for speed and seperation
@@ -74,4 +74,4 @@ We use introspection to put all global modules into the add menu, and recursibly
 
   2. make ai-augmented art directly in blender
 
-  3. demonstrate societal changing capicy of dfs
+  3. enable anyone to create high-quality visuals with little-to no monetary investment of their own
