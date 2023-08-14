@@ -53,9 +53,10 @@ def registerAll():
     for cls in operator_classes:
         bpy.utils.register_class(cls)
 
+    i = 0
     for category, clazzes in sorted(node_registry_dict.items()):
         cat = pynodes.PythonCompositorNodeCategory(
-            category.replace('.', '_'),
+            f'PythonNode_{i:09d}',# category.replace('.', '_'),
             category,
             items=
             [
@@ -63,7 +64,9 @@ def registerAll():
                 for clazz in clazzes if not clazz.bl_idname.split('.')[-1].startswith('_')
             ]
         )
+        
         node_categories.append(cat)
+        i+=1
 
     for cls in node_classes:
         bpy.utils.register_class(cls)

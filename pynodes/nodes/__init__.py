@@ -10,4 +10,5 @@ from pynodes.nodes.PythonShowArrayShapeBaseNode import PythonShowArrayShapeBaseN
 from pynodes.nodes.PythonNodeGroupNodes import *
 
 from pynodes.nodes.AutoNodeTypeAdder import add_all_globals
+
 add_all_globals()
