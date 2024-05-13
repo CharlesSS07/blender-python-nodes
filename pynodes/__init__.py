@@ -12,7 +12,17 @@ bl_info = {
 
 import bpy
 from bpy.types import NodeTree, Node, NodeSocket
-import numpy as np
+from bpy.types import (
+    Operator,
+    PropertyGroup,
+)
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatVectorProperty,
+    StringProperty,
+)
 
 # TODO ideas:
 # 1. autorename sockets based off of return type, numpy array could show dtype, shape
@@ -24,33 +34,9 @@ class PythonCompositorTree(NodeTree):
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'PythonCompositorTreeType'
     # Label for nice name display
-    bl_label = "Python Compositor Tree"
+    bl_label = "PyNodes Compositor Tree"
     # Icon identifier
     bl_icon = 'NODETREE'
-
-def get_node_execution_scope():
-    '''
-    Returns the scope to be used when evaluating python node inputs.
-    Quickly get a bunch of constants, can be extracted and modified to
-    have more constants or packages later. Note that many python
-    builtins are already in the scope by default, such as int or str.
-    '''
-    import numpy as np
-    import bpy
-    import os
-    import sys
-    # tensorflow, ffmpeg, gmic qt, osl, PIL...
-    return {
-        'pi':np.pi,
-        'tau':np.pi*2,
-        'e':np.e,
-        'np':np,
-        'bpy':bpy,
-        'os':os,
-        'sys':sys
-    }
-
-node_execution_scope = get_node_execution_scope()
 
 # Custom socket type
 class AbstractPyObjectSocket(NodeSocket):
@@ -60,7 +46,7 @@ class AbstractPyObjectSocket(NodeSocket):
 
     # for storing the inputs and outputs of nodes without overriding default_value
     # we can't change value of _value_, but we can set what it points to if its a list
-    _value_ = [{},]#: bpy.props.PointerProperty(type=bpy.types.Object, name='value', description='Pointer to object contained by the socket')
+    # _value_ = [{},]#: bpy.props.PointerProperty(type=bpy.types.Object, name='value', description='Pointer to object contained by the socket')
 
     # blender properties have to be wrapped in this so they are inherited in a way that blender properties can access them
     class Properties:
@@ -83,15 +69,6 @@ class AbstractPyObjectSocket(NodeSocket):
     def node_updated(self):
         pass
 
-    def get_value(self):
-        if (self.is_linked or self.is_output) and self.identifier in self._value_[0]:
-            return self._value_[0][self.identifier]
-        else:
-            return self.argvalue # eval(self.argvalue, node_execution_scope)
-
-    def set_value(self, value):
-        self._value_[0][self.identifier] = value
-    
     def hide_text_input(self):
         self.argvalue_hidden = True
     
@@ -119,200 +96,6 @@ class PyObjectSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSocket):
     # Label for nice name display
     bl_label = "Python Object Socket"
 
-class AbstractPyObjectVarArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSocket):
-    # Description string
-    '''PyNodes node socket type for variable arguments (varargs, *args)'''
-    
-    class Properties:
-        socket_index : bpy.props.IntProperty(
-            name = 'socket_index',
-            default = -1
-        )
-    
-        socket_index_valid : bpy.props.BoolProperty(
-            name = 'socket_index_valid',
-            default = True
-        )
-
-    def __init__(self):
-        super().__init__()
-        self.name = self.identifier
-        if not self.socket_index_valid:
-            self.node.inputs.move(self.node.inputs.find(self.identifier), self.socket_index)
-            self.socket_index_valid = True
-
-    # var args nodes automatically remove or add more of themselves as they are used
-    def node_updated(self):
-        self.update()
-    
-    def argvalue_updated(self):
-        self.update()
-        
-    def socket_init(self):
-        pass
-    
-    def update(self):
-    
-        if self.is_output:
-            socket_collection = self.node.outputs
-        else:
-            socket_collection = self.node.inputs
-        
-        emptypins = 0
-        # count the number of non-linked, empty sibling vararg pins
-        for i in socket_collection:
-            if i.bl_idname == self.bl_idname:
-                if i.is_empty():
-                    emptypins+=1
-                    last_empty_socket = i
-                last_socket = i
-
-        # there is at least one other empty non-linked one (other than self)
-        if emptypins > 1:
-            # remove self if empty and not linked
-            self.node.unsubscribe_to_update(last_empty_socket.node_updated)
-            socket_collection.remove(last_empty_socket)
-        # create new pin if there is not enough
-        elif emptypins < 1:
-            new_socket = socket_collection.new(
-                self.bl_idname,
-                '',
-                identifier=self.identifier
-            )
-            
-            if last_socket.socket_index==-1:
-                new_socket.socket_index = socket_collection.find(last_socket.identifier)+1
-            else:
-                new_socket.socket_index = last_socket.socket_index+1
-            new_socket.socket_index_valid = False
-            
-            new_socket.socket_init()
-
-class PyObjectVarArgSocket(AbstractPyObjectVarArgSocket.Properties, AbstractPyObjectVarArgSocket):
-    # Description string
-    '''PyNodes node socket type for variable arguments (varargs, *args)'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'PyObjectVarArgSocketType'
-    # Label for nice name display
-    bl_label = 'Expanding Socket'
-    
-    def __init__(self):
-        super().__init__()
-        # pin shape
-        self.display_shape = 'DIAMOND'
-
-# class PyObjectVarArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSocket):
-#     # Description string
-#     '''Python node socket type for variable arguments (varargs, *args)'''
-#     # Optional identifier string. If not explicitly defined, the python class name is used.
-#     bl_idname = 'PyObjectVarArgSocketType'
-#     # Label for nice name display
-#     bl_label = 'Python *args Object Socket'
-# 
-#     def __init__(self):
-#         super().__init__()
-#         # pin shape
-#         self.display_shape = 'DIAMOND'
-#         self.name = self.identifier
-#         # socket must be indexible using name.
-#         # therefore force name to be unique like identifier
-#         self.node.subscribe_to_update(self.node_updated)
-#         # subscribe socket to node update events
-# 
-#     # var args nodes automatically remove or add more of themselves as they are used
-#     def node_updated(self):
-#         # print('node_updated', self.node, self)
-#         self.update()
-# 
-#     def argvalue_updated(self):
-#         # print('argvalue_updated', self.node, self)
-#         self.update()
-# 
-#     def update(self):
-#         emptyvarargpins = 0
-#         # count the number of non-linked, empty sibling vararg pins
-#         for input in self.node.inputs:
-#             if input.bl_idname == PyObjectVarArgSocket.bl_idname:
-#                 if input.is_empty():
-#                     emptyvarargpins+=1
-# 
-#         # there is at least one other empty non-linked one (other than self)
-#         if emptyvarargpins > 1:
-#             # remove self if empty and not linked
-#             self.node.unsubscribe_to_update(self)
-#             self.node.inputs.remove(self)
-#         # create new pin if there is not enough
-#         elif emptyvarargpins < 1:
-#             self.node.inputs.new(PyObjectVarArgSocket.bl_idname, '*arg')
-
-# class PyObjectKwArgSocket(AbstractPyObjectVarArgSocket.Properties, AbstractPyObjectVarArgSocket):
-#     # Description string
-#     '''PyNodes socket type for variable arguments (varargs, *args)'''
-#     # Optional identifier string. If not explicitly defined, the python class name is used.
-#     bl_idname = 'PyObjectKwArgSocket'
-#     # Label for nice name display
-#     bl_label = 'Expanding Socket for Optional Attributes'
-#     
-#     attribute : bpy.props.StringProperty(
-#         name='Attribute',
-#         description="An attribute to set.",
-#         update=lambda s,c:s.node.update()
-#     )
-#     
-#     attribute_collection : bpy.props.CollectionProperty(
-#         name='Attribute Selector',
-#         type=bpy.types.PropertyGroup
-#     )
-#     
-#     def update_attribute_collection(self):
-#         self.attribute_collection.clear()
-#         for a in self.get_display_attributes():
-#             self.attribute_collection.add().name = a
-#     
-#     def node_updated(self):
-#         super().node_updated()
-#         self.update_attribute_collection()
-#     
-#     def socket_init(self):
-#         super().socket_init()
-#         self.update_attribute_collection()
-#     
-#     def get_display_attributes(self):
-#         unused_attributes = self.node.unused_attributes()
-#         if not self.attribute is None:
-#         	unused_attributes+=[self.attribute,]
-#         unused_attributes = sorted(unused_attributes)
-#         return unused_attributes
-# 
-#     def draw(self, context, layout, node, text):
-#         if text!='':
-#             layout.label(text=text)
-#         layout.prop_search(self, 'attribute', self, 'attribute_collection', text='')
-#         if not self.is_linked and not self.is_output:
-#             layout.prop(self, 'argvalue', text='')
-#         
-#     def __init__(self):
-#         super().__init__()
-#         # pin shape
-#         self.display_shape = 'SQUARE'
-
-class PyObjectKwArgSocket(AbstractPyObjectSocket.Properties, AbstractPyObjectSocket):
-    # Description string
-    '''Python node socket type for keyword argumnets'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'PyObjectKWArgSocketType'
-    # Label for nice name display
-    bl_label = 'Python *kwargs Object Socket'
-
-    def __init__(self):
-        super().__init__()
-        # pin shape
-        self.display_shape = 'SQUARE'
-
-    # method to set the default value defined by the kwargs
-    def set_default(self, value):
-        self.argvalue = value
-
 ### Node Categories ###
 # Node categories are a python system for automatically
 # extending the Add menu, toolbar panels and search operator.
@@ -334,43 +117,57 @@ class PythonCompositorOperator(bpy.types.Operator):
     def poll(cls, context):
         return context.space_data.tree_type == PythonCompositorTree.bl_idname
 
-# Have to add grouping behavior manually:
+def get_override(area_type):
+    for window in bpy.context.window_manager.windows:
+        screen = window.screen
+        
+        for area in screen.areas:
+            if area.type == area_type:
+                for region in area.regions:
+                    if region.type == 'WINDOW':
+                        override = {'window': window,
+                                    'screen': screen,
+                                    'area': area,
+                                    'region': region,
+                                    'blend_data': bpy.context.blend_data}
+                        
+                        return override
 
-def group_make(self, new_group_name):
-    self.node_tree = bpy.data.node_groups.new(new_group_name, PythonCompositorTree.bl_idname)
-    self.group_name = self.node_tree.name
-
-    nodes = self.node_tree.nodes
-    inputnode = nodes.new('PyNodesGroupInputsNode')
-    outputnode = nodes.new('PyNodesGroupOutputsNode')
-    inputnode.location = (-300, 0)
-    outputnode.location = (300, 0)
-    return self.node_tree
-
+# Have to add node grouping behavior manually:
 class PyNodesGroupEdit(PythonCompositorOperator):
     bl_idname = "node.pynodes_group_edit"
-    bl_label = "edits an pynodes node group"
+    bl_label = "edits a pynodes node group"
 
     group_name : bpy.props.StringProperty(default='Node Group')
+    
+    def group_make(self, node, new_group_name):
+        self.node_tree = bpy.data.node_groups.new(new_group_name, PythonCompositorTree.bl_idname)
+        self.group_name = self.node_tree.name
 
+        nodes = self.node_tree.nodes
+        inputnode = nodes.new('PyNodesGroupInputsNode')
+        outputnode = nodes.new('PyNodesGroupOutputsNode')
+        inputnode.location = (-300, 0)
+        outputnode.location = (300, 0)
+        return self.node_tree
+    
     def execute(self, context):
         node = context.active_node
+        parent_tree_name = node.id_data.name
         ng = bpy.data.node_groups
         
         print(self.group_name)
 
-        group_node = ng.get(self.group_name)
-        if not group_node:
-            group_node = group_make(node, new_group_name=self.group_name)
-
+        node_group = ng.get(self.group_name)
+        if not node_group:
+            node_group = self.group_make(node, new_group_name=self.group_name)
+        
         bpy.ops.node.pynodes_switch_layout(layout_name=self.group_name)
-#         print(context.space_data, context.space_data.node_tree)
-#         context.space_data.node_tree = ng[self.group_name] # does the same
 
         # by switching, space_data is now different
-        parent_tree_name = node.id_data.name
+        # parent_tree_name = node.id_data.name
         path = context.space_data.path
-        path.clear()
+        path.clear() #?
         path.append(ng[parent_tree_name]) # below the green opacity layer
         path.append(ng[self.group_name])  # top level
 
@@ -428,17 +225,17 @@ class PyNodesSwitchToLayout(bpy.types.Operator):
             return {'CANCELLED'}
         return {'FINISHED'}
 
-class NODE_MT_add_test_node_tree(PythonCompositorOperator):
-    """Programmatically create node tree for testing, if it dosen't already exist."""
-    bl_idname = "node.add_test_node_tree"
-    bl_label = "Add test node tree."
+class NODE_MT_add_python_node(PythonCompositorOperator):
+    """Allow user to search for the exact function they wish to run in a node."""
+    bl_idname = "node.add_python_node"
+    bl_label = "Add python node by search"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
 
         if bpy.data.node_groups.get('Python Node Tree Test', False)==False:
             bpy.ops.node.new_node_tree(
-                type='PythonCompositorTreeType',
+                type=PythonCompositorTree.bl_idname,
                 name='Python Node Tree Test'
             )
             test_node_tree = bpy.data.node_groups.get('Python Node Tree Test', False)
@@ -456,6 +253,168 @@ def add_test_node_tree(self, context):
         NODE_MT_add_test_node_tree.bl_idname,
         text="Add Test Node Tree")
 
+# NodeAddOperator, NodeSetting from https://raw.githubusercontent.com/blender/blender/main/scripts/startup/bl_operators/node.py
+
+class NodeSetting(PropertyGroup):
+    value: StringProperty(
+        name="Value",
+        description="Python expression to be evaluated "
+        "as the initial node setting",
+        default="",
+    )
+
+# Base class for node "Add" operators.
+class NodeAddOperator:
+
+    use_transform: BoolProperty(
+        name="Use Transform",
+        description="Start transform operator after inserting the node",
+        default=False,
+    )
+    settings: CollectionProperty(
+        name="Settings",
+        description="Settings to be applied on the newly created node",
+        type=NodeSetting,
+        options={'SKIP_SAVE'},
+    )
+
+    @staticmethod
+    def store_mouse_cursor(context, event):
+        space = context.space_data
+        tree = space.edit_tree
+
+        # convert mouse position to the View2D for later node placement
+        if context.region.type == 'WINDOW':
+            # convert mouse position to the View2D for later node placement
+            space.cursor_location_from_region(
+                event.mouse_region_x, event.mouse_region_y)
+        else:
+            space.cursor_location = tree.view_center
+
+    # Deselect all nodes in the tree.
+    @staticmethod
+    def deselect_nodes(context):
+        space = context.space_data
+        tree = space.edit_tree
+        for n in tree.nodes:
+            n.select = False
+
+    def create_node(self, context, node_type):
+        space = context.space_data
+        tree = space.edit_tree
+
+        try:
+            node = tree.nodes.new(type=node_type)
+        except RuntimeError as ex:
+            self.report({'ERROR'}, str(ex))
+            return None
+
+        for setting in self.settings:
+            # XXX catch exceptions here?
+            value = eval(setting.value)
+            node_data = node
+            node_attr_name = setting.name
+
+            # Support path to nested data.
+            if '.' in node_attr_name:
+                node_data_path, node_attr_name = node_attr_name.rsplit(".", 1)
+                node_data = node.path_resolve(node_data_path)
+
+            try:
+                setattr(node_data, node_attr_name, value)
+            except AttributeError as ex:
+                self.report(
+                    {'ERROR_INVALID_INPUT'},
+                    tip_("Node has no attribute %s") % setting.name)
+                print(str(ex))
+                # Continue despite invalid attribute
+
+        node.select = True
+        tree.nodes.active = node
+        node.location = space.cursor_location
+        return node
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        # needs active node editor and a tree to add nodes to
+        return (space and (space.type == 'NODE_EDITOR') and
+                space.edit_tree and not space.edit_tree.library)
+
+    # Default invoke stores the mouse position to place the node correctly
+    # and optionally invokes the transform operator
+    def invoke(self, context, event):
+        self.store_mouse_cursor(context, event)
+        result = self.execute(context)
+
+        if self.use_transform and ('FINISHED' in result):
+            # removes the node again if transform is canceled
+            bpy.ops.node.translate_attach_remove_on_cancel('INVOKE_DEFAULT')
+
+        return result
+
+# NODE_OT_add_node from https://raw.githubusercontent.com/jesterKing/blender/143ccc8c44cbd1a630c4f02d8c6eb26e26c63757/blender/release/scripts/startup/bl_operators/node.py
+
+class NODE_OT_add_search_pynodes(NodeAddOperator, Operator):
+    '''Add a node to the active tree'''
+    bl_idname = "node.add_search_pynodes"
+    bl_label = "Search and Add Node"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_property = "node_item"
+
+    _enum_item_hack = []
+
+    # Create an enum list from node items
+    def node_enum_items(self, context):
+        enum_items = NODE_OT_add_search._enum_item_hack
+        enum_items.clear()
+        
+        
+
+        return enum_items
+
+    # Look up the item based on index
+    def find_node_item(self, context):
+        node_item = int(self.node_item)
+        for index, item in enumerate(nodeitems_utils.node_items_iter(context)):
+            if index == node_item:
+                return item
+        return None
+
+    node_item = EnumProperty(
+            name="Node Type",
+            description="Node type",
+            items=node_enum_items,
+            )
+
+    def execute(self, context):
+        item = self.find_node_item(context)
+
+        # no need to keep
+        self._enum_item_hack.clear()
+
+        if item:
+            # apply settings from the node item
+            for setting in item.settings.items():
+                ops = self.settings.add()
+                ops.name = setting[0]
+                ops.value = setting[1]
+
+            n = self.create_node(context, 'AnyNode')
+            n.api_endpoint_string = item.label
+
+            if self.use_transform:
+                bpy.ops.transform.translate('INVOKE_DEFAULT', remove_on_cancel=True)
+
+            return {'FINISHED'}
+        else:
+            return {'CANCELLED'}
+
+    def invoke(self, context, event):
+        self.store_mouse_cursor(context, event)
+        # Delayed execution in the search popup
+        context.window_manager.invoke_search_popup(self)
+        return {'CANCELLED'}
 
 from pynodes import registry
 from pynodes import helpers
@@ -468,24 +427,20 @@ def register():
     # register the essentials to building a PythonNode
     register_class(PythonCompositorTree)
     register_class(PyObjectSocket)
-    register_class(PyObjectVarArgSocket)
-    register_class(PyObjectKwArgSocket)
     
     register_class(PyNodesGroupEdit)
     register_class(PyNodesTreePathParent)
     register_class(PyNodesSwitchToLayout)
     bpy.types.NODE_MT_node.append(pynodes_group_edit)
 
-    register_class(NODE_MT_add_test_node_tree)
-    bpy.types.NODE_MT_node.append(add_test_node_tree)
+    # register_class(NODE_MT_add_test_node_tree)
+    # bpy.types.NODE_MT_node.append(add_test_node_tree)
 
 def unregister():
     registry.unregisterAll()
 
     unregister_class(PythonCompositorTree)
     unregister_class(PyObjectSocket)
-    unregister_class(PyObjectVarArgSocket)
-    unregister_class(PyObjectKwArgSocket)
     
     unregister_class(PyNodesGroupEdit)
     unregister_class(PyNodesTreePathParent)

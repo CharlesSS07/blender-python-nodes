@@ -7,7 +7,7 @@ import numpy as np
 from pynodes import registry
 from bpy.utils import register_class
 
-class PythonNodeGroupIOSocket(pynodes.AbstractPyObjectVarArgSocket.Properties, pynodes.AbstractPyObjectVarArgSocket):
+class PythonNodeGroupIOSocket(pynodes.AbstractPyObjectSocket.Properties, pynodes.AbstractPyObjectSocket):
     ''' PyNodes node socket type for group input and output nodes'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'PythonNodeGroupIOSocket'

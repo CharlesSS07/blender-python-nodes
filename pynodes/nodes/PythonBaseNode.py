@@ -15,7 +15,7 @@ class EvaluateNodesOperator(bpy.types.Operator):
         return space.type == 'NODE_EDITOR'
 
     def execute(self, context):
-        context.node.compute_output()
+        context.node.run()
         return {'FINISHED'}
 
 from pynodes import registry
@@ -36,14 +36,6 @@ class PythonBaseNode(nodes.PythonNode):
     def mark_dirty(self):
         self.is_current = False
         super().mark_dirty()
-
-    # def compute_output(self):
-    #     print('compute_output run')
-    #     try:
-    #         super().compute_output()
-    #     except nodes.PythonNode.PythonNodeRunError as e:
-    #         print('Python Nodes caught the following error:')
-    #         traceback.print_exc()
 
     def draw_buttons(self, context, layout):
         layout.operator('node.evaluate_python_node_tree', icon='PLAY')

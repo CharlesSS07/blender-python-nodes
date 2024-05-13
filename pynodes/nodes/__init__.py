@@ -9,6 +9,9 @@ from pynodes.nodes.PythonWaitSecondsNode import PythonWaitSecondsNode
 from pynodes.nodes.PythonShowArrayShapeBaseNode import PythonShowArrayShapeBaseNode
 from pynodes.nodes.PythonNodeGroupNodes import *
 
-from pynodes.nodes.AutoNodeTypeAdder import add_all_globals
+from pynodes.nodes.AnyNode import AnyNode
+from pynodes.nodes.AnyBaseNode import AnyBaseNode
 
-add_all_globals()
+# from pynodes.nodes.AutoNodeTypeAdder import add_all_globals
+
+# add_all_globals()
