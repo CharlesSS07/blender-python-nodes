@@ -15,6 +15,7 @@ class EvaluateNodesOperator(bpy.types.Operator):
         return space.type == 'NODE_EDITOR'
 
     def execute(self, context):
+        print('context.node', context.node)
         context.node.compute_output()
         return {'FINISHED'}
 

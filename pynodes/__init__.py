@@ -28,29 +28,29 @@ class PythonCompositorTree(NodeTree):
     # Icon identifier
     bl_icon = 'NODETREE'
 
-def get_node_execution_scope():
-    '''
-    Returns the scope to be used when evaluating python node inputs.
-    Quickly get a bunch of constants, can be extracted and modified to
-    have more constants or packages later. Note that many python
-    builtins are already in the scope by default, such as int or str.
-    '''
-    import numpy as np
-    import bpy
-    import os
-    import sys
-    # tensorflow, ffmpeg, gmic qt, osl, PIL...
-    return {
-        'pi':np.pi,
-        'tau':np.pi*2,
-        'e':np.e,
-        'np':np,
-        'bpy':bpy,
-        'os':os,
-        'sys':sys
-    }
-
-node_execution_scope = get_node_execution_scope()
+# def get_node_execution_scope():
+#     '''
+#     Returns the scope to be used when evaluating python node inputs.
+#     Quickly get a bunch of constants, can be extracted and modified to
+#     have more constants or packages later. Note that many python
+#     builtins are already in the scope by default, such as int or str.
+#     '''
+#     import numpy as np
+#     import bpy
+#     import os
+#     import sys
+#     # tensorflow, ffmpeg, gmic qt, osl, PIL...
+#     return {
+#         'pi':np.pi,
+#         'tau':np.pi*2,
+#         'e':np.e,
+#         'np':np,
+#         'bpy':bpy,
+#         'os':os,
+#         'sys':sys
+#     }
+#
+# node_execution_scope = get_node_execution_scope()
 
 # Custom socket type
 class AbstractPyObjectSocket(NodeSocket):
@@ -87,7 +87,7 @@ class AbstractPyObjectSocket(NodeSocket):
         if (self.is_linked or self.is_output) and self.identifier in self._value_[0]:
             return self._value_[0][self.identifier]
         else:
-            return self.argvalue # eval(self.argvalue, node_execution_scope)
+            return self.argvalue
 
     def set_value(self, value):
         self._value_[0][self.identifier] = value

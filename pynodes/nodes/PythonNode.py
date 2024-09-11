@@ -105,7 +105,7 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
             value = o.get_value()
             if value is None or o.node.get_dirty():
                 o.node.compute_output()
-            value = o.get_value();
+            value = o.get_value()
             return value
         v.set_value(None)
         return v.get_value()
@@ -131,7 +131,8 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
             # mark node, and downstream nodes as dirty/not current
         
         for socket in self.inputs:
-            socket.node_updated()
+            if isinstance(socket, pynodes.AbstractPyObjectSocket):
+                socket.node_updated()
         # call all socket callbacks and other subscribers
         for callback in self.update_subscribers:
             try:

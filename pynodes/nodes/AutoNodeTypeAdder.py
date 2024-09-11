@@ -133,23 +133,22 @@ def add_scope(scope):
                 pass # TODO: do something about constants or non-module non-callables?
                 # make nodes that are just for a modules constants, no inputs just outputs
 
-def add_basics(): # adds recursivley, getting into all globals
-    scope = {}
+def add_basic_nodes(): # adds recursivley, getting into all globals
     import numpy as np
-    import tensorflow
     import bpy
     import os
     import sys
+    import pynodes.helpers
     scope = {
         'np':np,
         'bpy':bpy,
         'os':os,
         'sys':sys,
-        'tensorflow':tensorflow
+        'helpers':pynodes.helpers
     }
     print(scope)
     add_scope(scope)
 
-def add_all_globals():
-    import sys
-    add_scope(sys.modules)
+# def add_all_globals():
+#     import sys
+#     add_scope(sys.modules)
