@@ -15,8 +15,8 @@ class EvaluateNodesOperator(bpy.types.Operator):
         return space.type == 'NODE_EDITOR'
 
     def execute(self, context):
-        print('context.node', context.node)
-        context.node.compute_output()
+        # context.node.compute_output()
+        context.node.execute_python_node_tree()
         return {'FINISHED'}
 
 from pynodes import registry
@@ -56,3 +56,31 @@ class PythonBaseNode(nodes.PythonNode):
 
     def is_connected_to_base(self):
         return True
+
+    def execute_python_node_tree(self):
+
+        not_explored = [self]
+        explored = []
+
+        # compute order to run nodes in (reverse BFS order)
+
+        while len(not_explored)>0:
+            n = not_explored.pop()
+
+            # explore n
+            for k in n.inputs.keys():
+                inp = n.inputs[k]
+                if inp.is_linked:
+                    for link in inp.links:
+                        if link.from_socket.node in explored:
+                            continue
+
+                        not_explored.append(link.from_socket.node)
+
+            if n not in explored:
+                explored.append(n)
+
+        explored.reverse()
+        for n in explored:
+            if n.get_dirty():
+                n.compute_output()

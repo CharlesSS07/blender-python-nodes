@@ -1,3 +1,7 @@
+from typing import overload
+
+from setuptools.sandbox import override_temp
+
 import pynodes
 import traceback
 import bpy
@@ -8,6 +12,7 @@ import numpy as np
 class PythonCompositorTreeNode:
     @classmethod
     def poll(cls, ntree):
+        # classes extending this will only appear in the python node tree
         return ntree.bl_idname == pynodes.PythonCompositorTree.bl_idname
 
 class ColorfulNode(bpy.types.Node):
@@ -80,12 +85,32 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
         '''
         Return true if this node is connected to a node which is a "base" node.
         '''
-        for k in self.outputs.keys():
-            out = self.outputs[k]
-            if out.is_linked:
-                for o in out.links:
-                    if o.is_valid and o.to_socket.node.is_connected_to_base():
-                        return True
+        # BFS in direction of output nodes; find the first base node
+
+        if isinstance(self, pynodes.nodes.PythonBaseNode):
+            return True
+
+        not_explored = [self]
+        explored = set()
+
+        while len(not_explored)>0:
+            n = not_explored.pop()
+
+            # explore n
+            for k in n.outputs.keys():
+                out = n.outputs[k]
+                if out.is_linked:
+                    for link in out.links:
+                        if link.to_socket.node in explored:
+                            continue
+
+                        if link.is_valid and isinstance(link, pynodes.nodes.PythonBaseNode):
+                            return True
+
+                        not_explored.append(link.to_socket.node)
+
+            explored.add(n)
+
         return False
 
     def run(self):
@@ -102,13 +127,11 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
         v = self.inputs[k]
         if v.is_linked and len(v.links)>0 and v.links[0].is_valid:
             o = v.links[0].from_socket
-            value = o.get_value()
-            if value is None or o.node.get_dirty():
-                o.node.compute_output()
+            # from sockets are always the first link; don't ever want to have more than one for simplicity
             value = o.get_value()
             return value
-        v.set_value(None)
-        return v.get_value()
+
+        return v.get_value() # gets value from argval input box
 
     def set_output(self, k, v):
         self.outputs[k].set_value(v)
@@ -138,9 +161,9 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
             try:
                 callback()
             except Exception as e:
+                print('Encountered error while executing node update callback.')
                 traceback.print_exc()
-                self.unsubscribe_to_update(callback)
-
+                # self.unsubscribe_to_update(callback)
 
     def interrupt_execution(self, e):
         raise PythonNode.PythonNodeRunError(self, e)
@@ -152,21 +175,20 @@ class PythonNode(ColorfulNode, PythonCompositorTreeNode):
                 self.set_color([0.0, 0.0, 0.5])
                 self.run()
                 self.is_dirty = False
-            self.propagate()
+            # self.propagate()
             self.set_color([0.0, 0.5, 0.0])
         except Exception as e:
-            # self.mark_dirty()
+            self.mark_dirty()
             self.set_color([0.5, 0.0, 0.0])
             traceback.print_exc()
             self.interrupt_execution(e)
 
-    def propagate(self):
-        '''
-        Pass this nodes outputs to nodes linked to outputs. Call update_value on
-        them after passing.
-        '''
-        for out in self.outputs:
-            if out.is_linked:
-                for o in out.links:
-                    if o.is_valid:
-                        o.to_socket.set_value(out.get_value())
+    # def propagate(self):
+    #     '''
+    #     Pass this nodes outputs to nodes linked to outputs.
+    #     '''
+    #     for out in self.outputs:
+    #         if out.is_linked:
+    #             for link in out.links:
+    #                 if link.is_valid:
+    #                     link.to_socket.set_value(out.get_value())

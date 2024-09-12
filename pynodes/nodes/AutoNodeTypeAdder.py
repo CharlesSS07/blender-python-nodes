@@ -2,6 +2,8 @@ import types
 
 import inspect
 
+import urllib.parse
+
 import bpy
 
 import numpy as np
@@ -80,6 +82,26 @@ def add_node_type(func):
                 # add the output pin
                 self.outputs.new(pynodes.PyObjectSocket.bl_idname, qname)
 
+            def draw_buttons_ext(self, context, layout):
+                # open a link to documentation for this command on google (best I could hack together)
+                row = layout.column()
+
+                row.label(text='Documentation')
+
+                google_search = f'documentation for {self.bl_label} (python)'
+
+                row.operator(
+                    "wm.url_open",
+                    text="Google Documentation"
+                ).url = f'http://www.google.com?q={urllib.parse.quote_plus(google_search)}'
+
+                chatgpt_prompt = f'Explain how to use {self.bl_label} in python.'
+
+                row.operator(
+                    "wm.url_open",
+                    text="ChatGPT Help"
+                ).url = f'http://chat.openai.com?q={urllib.parse.quote_plus(chatgpt_prompt)}'
+
             def run(self):
                 # collect the inputs
                 posargs = [
@@ -105,6 +127,8 @@ def add_node_type(func):
                 })
 
                 # pass inputs to the function and run it
+                print(posvals)
+                print(kwdict)
                 output = func(*posvals, **kwdict) # TODO: should this be ran in a scope somehow?
 
                 # send the output of the function to the output socket
