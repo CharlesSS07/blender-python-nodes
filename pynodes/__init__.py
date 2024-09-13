@@ -480,6 +480,9 @@ def register():
     bpy.types.NODE_MT_node.append(add_test_node_tree)
 
 def unregister():
+    
+    from bpy.utils import unregister_class
+
     registry.unregisterAll()
 
     unregister_class(PythonCompositorTree)
