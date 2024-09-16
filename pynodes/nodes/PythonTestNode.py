@@ -1,6 +1,5 @@
 import pynodes
 from pynodes import nodes
-# from pynodes.nodes import PythonNode
 import numpy as np
 import bpy
 
@@ -9,7 +8,7 @@ class PythonTestNode(nodes.PythonNode):
     # Description string
     '''Load Image Data'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'PythonLoadImageNode'
+    bl_idname = 'PythonTestNode'
     # Label for nice name display
     bl_label = "Python Test Node"
 

@@ -127,8 +127,8 @@ def add_node_type(func):
                 })
 
                 # pass inputs to the function and run it
-                print(posvals)
-                print(kwdict)
+                # print(posvals)
+                # print(kwdict)
                 output = func(*posvals, **kwdict) # TODO: should this be ran in a scope somehow?
 
                 # send the output of the function to the output socket
@@ -162,13 +162,15 @@ def add_basic_nodes(): # adds recursivley, getting into all globals
     import bpy
     import os
     import sys
+    import requests
     import pynodes.helpers
     scope = {
         'np':np,
         'bpy':bpy,
         'os':os,
         'sys':sys,
-        'helpers':pynodes.helpers
+        'helpers':pynodes.helpers,
+        'requests': requests
     }
     print(scope)
     add_scope(scope)

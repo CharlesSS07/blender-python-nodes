@@ -17,3 +17,9 @@ def insert(list, index, object):
 def pop(list, index):
     lst = list.copy()
     return lst.pop(index)
+
+def push(list, object):
+    '''
+    Pushes element onto front (0th position) of list.
+    '''
+    return insert(list, 0, object)

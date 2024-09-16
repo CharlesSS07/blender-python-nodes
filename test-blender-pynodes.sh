@@ -5,4 +5,4 @@
 
 BLENDER_EXECUTABLE='/Applications/Blender.app/Contents/MacOS/Blender'
 
-$BLENDER_EXECUTABLE $PWD/.tmp.blend -P $PWD/install-pynodes.py
+$BLENDER_EXECUTABLE $PWD/example.blend -P $PWD/install-pynodes.py

@@ -1,6 +1,5 @@
 pynodes.zip
-.tmp.blend1
-test.blend
+*.blend1
 
 .DS_Store
 

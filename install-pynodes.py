@@ -14,7 +14,7 @@ sys.path.append(os.path.split(__file__)[0])
 # import tensorflow
 # import tensorflow_datasets
 
-print('imported environment packages')
+# print('imported environment packages')
 
 import pynodes
 import pynodes.nodes

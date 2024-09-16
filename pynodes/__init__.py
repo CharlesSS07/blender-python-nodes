@@ -87,7 +87,8 @@ class AbstractPyObjectSocket(NodeSocket):
         if (self.is_linked or self.is_output) and self.identifier in self._value_[0]:
             return self._value_[0][self.identifier]
         else:
-            return eval(self.argvalue)
+            if not self.argvalue is None and not self.argvalue=='':
+                return eval(self.argvalue)
 
     def set_value(self, value):
         self._value_[0][self.identifier] = value
@@ -357,7 +358,7 @@ class PyNodesGroupEdit(PythonCompositorOperator):
         node = context.active_node
         ng = bpy.data.node_groups
         
-        print(self.group_name)
+        # print(self.group_name)
 
         group_node = ng.get(self.group_name)
         if not group_node:
@@ -480,7 +481,7 @@ def register():
     bpy.types.NODE_MT_node.append(add_test_node_tree)
 
 def unregister():
-    
+
     from bpy.utils import unregister_class
 
     registry.unregisterAll()
